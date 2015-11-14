@@ -1,0 +1,99 @@
+﻿<Page
+    x:Class="FantasyRadio.PivotPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:FantasyRadio"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:data="using:FantasyRadio.Data"
+    mc:Ignorable="d"
+    DataContext="{Binding DefaultViewModel, RelativeSource={RelativeSource Self}}"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Page.Transitions>
+        <TransitionCollection>
+            <NavigationThemeTransition>
+                <NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                    <CommonNavigationTransitionInfo IsStaggeringEnabled="True"/>
+                </NavigationThemeTransition.DefaultNavigationTransitionInfo>
+            </NavigationThemeTransition>
+        </TransitionCollection>
+    </Page.Transitions>
+
+    <Grid>
+        <Pivot x:Uid="Pivot" Title="MY APPLICATION" x:Name="pivot" CommonNavigationTransitionInfo.IsStaggerElement="True">
+            <!--Сводный элемент один-->
+            <PivotItem
+                x:Uid="PivotItem1"
+                Margin="19,14.5,0,0"
+                Header="first"
+                DataContext="{Binding FirstGroup}"
+                d:DataContext="{Binding Groups[0], Source={d:DesignData Source=/DataModel/SampleData.json, Type=data:SampleDataSource}}"
+                CommonNavigationTransitionInfo.IsStaggerElement="True">
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Uid="PlayPauseButton"/>
+                        <Button x:Uid="RecButton"/>
+                        <TextBlock x:Uid="RadioTitle"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock x:Uid="BitrateText1" Text="Stream 1"/>
+                        <TextBlock x:Uid="BitrateText2" Text="Stream 2"/>
+                        <TextBlock x:Uid="BitrateText3" Text="Stream 3"/>
+                        <TextBlock x:Uid="BitrateText4" Text="Stream 4"/>
+                        <TextBlock x:Uid="BitrateText5" Text="Stream 5"/>
+                    </StackPanel>
+                </StackPanel>
+            </PivotItem>
+
+            <!--Сводный элемент два-->
+            <PivotItem
+                x:Uid="PivotItem2"
+                Margin="19,14.5,0,0"
+                Header="second"
+                DataContext="{Binding SecondGroup}"
+                d:DataContext="{Binding Groups[1], Source={d:DesignData Source=/DataModel/SampleData.json, Type=data:SampleDataSource}}">
+                <!--Двухстрочный список без переноса текста на новую строку-->
+                <ListView
+                    ItemsSource="{Binding Items}"
+                    IsItemClickEnabled="True"
+                    ItemClick="ItemView_ItemClick"
+                    Loaded="SecondPivot_Loaded"
+                    ContinuumNavigationTransitionInfo.ExitElementContainer="True">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,0,0,9.5">
+                                <TextBlock
+                                    Text="{Binding Title}"
+                                    Pivot.SlideInAnimationGroup="1"
+                                    CommonNavigationTransitionInfo.IsStaggerElement="True"
+                                    Style="{StaticResource ListViewItemTextBlockStyle}"/>
+                                <TextBlock
+                                    Text="{Binding Description}"
+                                    Pivot.SlideInAnimationGroup="2"
+                                    CommonNavigationTransitionInfo.IsStaggerElement="True"
+                                    Style="{StaticResource ListViewItemContentTextBlockStyle}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </PivotItem>
+
+            <!--Сводный элемент три-->
+            <PivotItem
+                x:Uid="PivotItem3"
+                Margin="19,14.5,0,0"
+                Header="third">
+            </PivotItem>
+        </Pivot>
+    </Grid>
+
+    <Page.BottomAppBar>
+        <CommandBar>
+            <AppBarButton x:Uid="AddAppBarButton" x:Name="AddAppBarButton" Label="add" Icon="Add" Click="AddAppBarButton_Click" />
+            <CommandBar.SecondaryCommands>
+                <AppBarButton x:Uid="SecondaryButton1" x:Name="SecondaryButton1" Label="secondary command 1" />
+                <AppBarButton x:Uid="SecondaryButton2" x:Name="SecondaryButton2" Label="secondary command 2" />
+            </CommandBar.SecondaryCommands>
+        </CommandBar>
+    </Page.BottomAppBar>
+</Page>
