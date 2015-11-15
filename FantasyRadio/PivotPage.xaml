@@ -31,7 +31,7 @@
                 CommonNavigationTransitionInfo.IsStaggerElement="True">
                 <StackPanel Orientation="Vertical">
                     <StackPanel Orientation="Horizontal">
-                        <Button x:Uid="PlayPauseButton"/>
+                        <Button x:Uid="PlayPauseButton" Click="Play_Pause_Button_click"/>
                         <Button x:Uid="RecButton"/>
                         <TextBlock x:Uid="RadioTitle"/>
                     </StackPanel>

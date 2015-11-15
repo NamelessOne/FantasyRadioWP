@@ -164,5 +164,14 @@ namespace FantasyRadio
         }
 
         #endregion
+
+        private void Play_Pause_Button_click(object sender, RoutedEventArgs e)
+        {
+            Bass.BASS.BASS_Free();
+            Bass.BASS.BASS_Init(-1, 44100, 0);
+            Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PLAYLIST, 1);
+            Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PREBUF, 0);
+            Bass.BASS.BASS_SetVolume((float)0.5);
+        }
     }
 }
