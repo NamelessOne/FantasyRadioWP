@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.ApplicationModel.Resources;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -167,11 +168,61 @@ namespace FantasyRadio
 
         private void Play_Pause_Button_click(object sender, RoutedEventArgs e)
         {
-            Bass.BASS.BASS_Free();
-            Bass.BASS.BASS_Init(-1, 44100, 0);
-            Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PLAYLIST, 1);
-            Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PREBUF, 0);
-            Bass.BASS.BASS_SetVolume((float)0.5);
+
+            string streamUrl = LocalizedStrings.Instance.getString("stream_url_MP332");
+            int r = 0;
+            Task.Run(() =>
+            {
+                int c = Bass.BASS.BASS_StreamCreateURL(streamUrl, 0, Bass.BASS.BASS_STREAM_AUTOFREE,
+                    null, 0); // open URL*/
+                Bass.BASS.BASS_ChannelPlay(c, false);
+            });
+        }
+
+
+        public class MyStatusProc : Bass.BASS.DOWNLOADPROC
+        {
+            /**
+             * Тут можно получить байты потока. Используется для записи.
+             * @param buffer Данные потока
+             * @param length Длина куска данных потока
+             * @param user BASS.dll магия. ХЗ что это
+             */
+            public void DOWNLOADPROC(MemoryStream buffer, int length, Object user)
+            {
+                /*if (PlayerState.getInstance().isRecActive())
+                {
+                    byte[] ba = new byte[length];
+                    FileOutputStream fos = null;
+                    try
+                    {
+                        buffer.get(ba);
+                        //1111
+                        fos = new FileOutputStream(PlayerState.getInstance().getF().toString(), true);
+                        fos.write(ba);
+                        PlayerState.getInstance().setRecArtist("");
+                        PlayerState.getInstance().setRecTime("");
+                        PlayerState.getInstance().setRecTitle(PlayerState.getInstance().getCurrentSong());
+                        PlayerState.getInstance().setRecURL("");
+                    }
+                    catch (Exception e1)
+                    {
+                        e1.printStackTrace();
+                    }
+                    try
+                    {
+                        if (fos != null)
+                        {
+                            fos.flush();
+                            fos.close();
+                        }
+                    }
+                    catch (Exception e1)
+                    {
+                        e1.printStackTrace();
+                    }
+                }*/
+            }
         }
     }
 }

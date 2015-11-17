@@ -565,7 +565,7 @@ namespace FantasyRadio.Bass
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_GetConfig(int option);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern bool BASS_SetConfigPtr(int option, Object value);
+        public static extern bool BASS_SetConfigPtr(int option, IntPtr ptr);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern Object BASS_GetConfigPtr(int option);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
@@ -575,7 +575,7 @@ namespace FantasyRadio.Bass
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern bool BASS_GetDeviceInfo(int device, BASS_DEVICEINFO info);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern bool BASS_Init(int device, int freq, int flags);
+        public static extern bool BASS_Init(int device, uint freq, uint flags, IntPtr win, IntPtr clsid);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern bool BASS_SetDevice(int device);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
@@ -662,7 +662,7 @@ namespace FantasyRadio.Bass
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_StreamCreateFile(Asset asset, long offset, long length, int flags);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern int BASS_StreamCreateURL(string url, int offset, int flags, DOWNLOADPROC proc, Object user);
+        public static extern int BASS_StreamCreateURL(string url, int offset, int flags, DOWNLOADPROC proc, int user);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_StreamCreateFileUser(int system, int flags, BASS_FILEPROCS procs, Object user);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
