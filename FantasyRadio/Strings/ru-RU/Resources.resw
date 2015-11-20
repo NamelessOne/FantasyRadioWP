@@ -124,16 +124,19 @@
     <value>AAC 16 КБит/с</value>
   </data>
   <data name="BitrateText2.Text" xml:space="preserve">
-    <value>AAC 112 КБит/с</value>
+    <value>MP3 32 КБит/с</value>
   </data>
   <data name="BitrateText3.Text" xml:space="preserve">
     <value>MP3 64 КБит/с</value>
   </data>
   <data name="BitrateText4.Text" xml:space="preserve">
-    <value>MP3 32 КБит/с</value>
+    <value>AAC 112 КБит/с</value>
   </data>
   <data name="BitrateText5.Text" xml:space="preserve">
     <value>MP3 96 КБит/с</value>
+  </data>
+  <data name="bitrate_element_color" xml:space="preserve">
+    <value>#5b5b5b</value>
   </data>
   <data name="Header.Text" xml:space="preserve">
     <value>РАДИО ФАНТАСТИКИ</value>
@@ -182,5 +185,8 @@
   </data>
   <data name="stream_url_MP396" xml:space="preserve">
     <value>http://fantasyradioru.no-ip.biz:8002/live</value>
+  </data>
+  <data name="Connecting" xml:space="preserve">
+    <value>Соединение...</value>
   </data>
 </root>

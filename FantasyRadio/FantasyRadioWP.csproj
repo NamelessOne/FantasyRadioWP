@@ -98,6 +98,10 @@
     <Compile Include="Common\ObservableDictionary.cs" />
     <Compile Include="Common\RelayCommand.cs" />
     <Compile Include="Common\SuspensionManager.cs" />
+    <Compile Include="Controller\BassManager.cs" />
+    <Compile Include="Controller\Bitrates.cs" />
+    <Compile Include="Controller\Controller.cs" />
+    <Compile Include="Controller\RadioManager.cs" />
     <Compile Include="DataModel\SampleDataSource.cs" />
     <Compile Include="ItemPage.xaml.cs">
       <DependentUpon>ItemPage.xaml</DependentUpon>
@@ -115,6 +119,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\Logo.scale-240.png" />
+    <Content Include="Assets\pause.png" />
+    <Content Include="Assets\pause_pressed.png" />
+    <Content Include="Assets\play.png" />
+    <Content Include="Assets\play_pressed.png" />
+    <Content Include="Assets\rec.png" />
+    <Content Include="Assets\rec_active.png" />
     <Content Include="Assets\SmallLogo.scale-240.png" />
     <Content Include="Assets\SplashScreen.scale-240.png" />
     <Content Include="Assets\Square71x71Logo.scale-240.png" />

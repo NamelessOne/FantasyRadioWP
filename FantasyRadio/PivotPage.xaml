@@ -24,23 +24,51 @@
             <!--Сводный элемент один-->
             <PivotItem
                 x:Uid="PivotItem1"
-                Margin="19,14.5,0,0"
+                Margin="10"
                 Header="first"
                 DataContext="{Binding FirstGroup}"
                 d:DataContext="{Binding Groups[0], Source={d:DesignData Source=/DataModel/SampleData.json, Type=data:SampleDataSource}}"
                 CommonNavigationTransitionInfo.IsStaggerElement="True">
                 <StackPanel Orientation="Vertical">
-                    <StackPanel Orientation="Horizontal">
-                        <Button x:Uid="PlayPauseButton" Click="Play_Pause_Button_click"/>
-                        <Button x:Uid="RecButton"/>
-                        <TextBlock x:Uid="RadioTitle"/>
-                    </StackPanel>
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40*"/>
+                            <ColumnDefinition Width="10*"/>
+                            <ColumnDefinition Width="30*"/>
+                            <ColumnDefinition Width="10*"/>
+                            <ColumnDefinition Width="210*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinWidth="0" Grid.Column="0" x:Uid="PlayPauseButton" x:Name="PlayPauseButton" Tapped="Play_Pause_Button_click" BorderThickness="0">
+                            <Button.Background>
+                                <ImageBrush ImageSource="{Binding PlayPauseImage}" Stretch="Uniform"/>
+                            </Button.Background>
+                        </Button>
+                        <TextBlock Grid.Column="1"/>
+                        <Button MinWidth="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2" x:Uid="RecButton" x:Name="RecButton" Tapped ="Rec_Button_Click" BorderThickness="0">
+                            <Button.Background>
+                                <ImageBrush ImageSource="{Binding RecImage}" Stretch="Uniform"/>
+                            </Button.Background>
+                        </Button>
+                        <TextBlock Grid.Column="3"/>
+                        <TextBlock Grid.Column="4" x:Name="RadioTitle" x:Uid="RadioTitle" Text="{Binding CurrentTitle}"/>
+                    </Grid>
+                    <Line Height="1" Margin="5" Stroke="White"/>
                     <StackPanel Orientation="Vertical">
-                        <TextBlock x:Uid="BitrateText1" Text="Stream 1"/>
-                        <TextBlock x:Uid="BitrateText2" Text="Stream 2"/>
-                        <TextBlock x:Uid="BitrateText3" Text="Stream 3"/>
-                        <TextBlock x:Uid="BitrateText4" Text="Stream 4"/>
-                        <TextBlock x:Uid="BitrateText5" Text="Stream 5"/>
+                        <StackPanel Name="BitratePanel1" Orientation="Horizontal" Background="{Binding Bitrate1Color}" Tapped="bitrateClick" Tag="0">
+                            <TextBlock x:Uid="BitrateText1" Text="Stream 1" Padding="5" />
+                        </StackPanel>
+                        <StackPanel Name="BitratePanel2" Orientation="Horizontal" Background="{Binding Bitrate2Color}" Tapped="bitrateClick" Tag="1">
+                            <TextBlock x:Uid="BitrateText2" Text="Stream 2" Padding="5"/>
+                        </StackPanel>
+                        <StackPanel Name="BitratePanel3" Orientation="Horizontal" Background="{Binding Bitrate3Color}" Tapped="bitrateClick" Tag="2">
+                            <TextBlock x:Uid="BitrateText3" Text="Stream 3" Padding="5"/>
+                        </StackPanel>
+                        <StackPanel Name="BitratePanel4" Orientation="Horizontal" Background="{Binding Bitrate4Color}" Tapped="bitrateClick" Tag="3">
+                            <TextBlock x:Uid="BitrateText4" Text="Stream 4" Padding="5"/>
+                        </StackPanel>
+                        <StackPanel Name="BitratePanel5" Orientation="Horizontal" Background="{Binding Bitrate5Color}" Tapped="bitrateClick" Tag="4">
+                            <TextBlock x:Uid="BitrateText5" Text="Stream 5" Padding="5"/>
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
             </PivotItem>

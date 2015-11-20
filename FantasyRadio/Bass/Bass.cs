@@ -781,4 +781,31 @@ namespace FantasyRadio.Bass
             public static int MAKELONG(int a, int b) { return (a & 0xffff) | (b << 16); }
         }
    }
+    public class BASS_AAC
+    {
+        // Additional BASS_SetConfig options
+        public const int BASS_CONFIG_MP4_VIDEO = 0x10700; // play the audio from MP4 videos
+        public const int BASS_CONFIG_AAC_MP4 = 0x10701; // support MP4 in BASS_AAC_StreamCreateXXX functions (no need for BASS_MP4_StreamCreateXXX)
+
+        public const int BASS_AAC_STEREO = 0x400000; // downmatrix to stereo
+
+        // BASS_CHANNELINFO type
+        public const int BASS_CTYPE_STREAM_AAC = 0x10b00; // AAC
+        public const int BASS_CTYPE_STREAM_MP4 = 0x10b01; // MP4
+
+        [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
+        public static extern int BASS_AAC_StreamCreateFile(string file, long offset, long length, int flags);
+        [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
+        public static extern int BASS_AAC_StreamCreateFile(MemoryStream file, long offset, long length, int flags);
+        [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
+        public static extern int BASS_AAC_StreamCreateURL(string url, int offset, int flags, BASS.DOWNLOADPROC proc, object user);
+        [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
+        public static extern int BASS_AAC_StreamCreateFileUser(int system, int flags, BASS.BASS_FILEPROCS procs, object user);
+        [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
+        public static extern int BASS_MP4_StreamCreateFile(string file, long offset, long length, int flags);
+        [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
+        public static extern int BASS_MP4_StreamCreateFile(MemoryStream file, long offset, long length, int flags);
+        [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
+        public static extern int BASS_MP4_StreamCreateFileUser(int system, int flags, BASS.BASS_FILEPROCS procs, object user);
+    }
 }

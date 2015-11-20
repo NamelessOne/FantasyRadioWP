@@ -1,21 +1,13 @@
 ﻿using FantasyRadio.Common;
 using FantasyRadio.Data;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Resources;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Graphics.Display;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
@@ -36,7 +28,16 @@ namespace FantasyRadio
         public PivotPage()
         {
             this.InitializeComponent();
-
+            //--------------------------------------BINDINGS-----------------------------
+            RadioTitle.DataContext = Controller.getInstance().RadioManager;
+            PlayPauseButton.DataContext = Controller.getInstance().RadioManager;
+            RecButton.DataContext = Controller.getInstance().RadioManager;
+            BitratePanel1.DataContext = Controller.getInstance().RadioManager;
+            BitratePanel2.DataContext = Controller.getInstance().RadioManager;
+            BitratePanel3.DataContext = Controller.getInstance().RadioManager;
+            BitratePanel4.DataContext = Controller.getInstance().RadioManager;
+            BitratePanel5.DataContext = Controller.getInstance().RadioManager;
+            //--------------------------------------BINDINGS-----------------------------
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
             this.navigationHelper = new NavigationHelper(this);
@@ -168,61 +169,111 @@ namespace FantasyRadio
 
         private void Play_Pause_Button_click(object sender, RoutedEventArgs e)
         {
+            string streamUrl = Controller.getInstance().RadioManager.getCurrentBitrateUrl();
+            if(Controller.getInstance().RadioManager.CurrentBitrate==Bitrates.AAC16|| Controller.getInstance().RadioManager.CurrentBitrate == Bitrates.AAC112)
+            {
+                OpenURLAAC(streamUrl);
+            }
+            else
+            {
+                OpenURL(streamUrl);
+            }
+        }
 
-            string streamUrl = LocalizedStrings.Instance.getString("stream_url_MP332");
-            int r = 0;
+        //Application.Current.Dispatcher.Invoke((Action)(() => messageList.Add(read)));
+        /*Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal,
+        ref new Windows::UI::Core::DispatchedHandler([this]()
+	{
+		((TextBlock^)FindName(L"status2"))->Text = "connecting...";
+		((TextBlock^)FindName(L"status1"))->Text = "";
+		((TextBlock^)FindName(L"status3"))->Text = "";
+	}));*/
+
+        private object lockObject = new object();
+        private int req;
+
+        private void OpenURL(string URL)
+        {
             Task.Run(() =>
             {
-                int c = Bass.BASS.BASS_StreamCreateURL(streamUrl, 0, Bass.BASS.BASS_STREAM_AUTOFREE,
-                    null, 0); // open URL*/
-                Bass.BASS.BASS_ChannelPlay(c, false);
+                int r;
+                lock (lockObject)
+                {
+                    r = ++req;
+                }
+                Bass.BASS.BASS_StreamFree(Controller.getInstance().BassManager.Chan);
+                Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => { Controller.getInstance().RadioManager.CurrentTitle = LocalizedStrings.Instance.getString("Connecting"); });            
+                int c = Bass.BASS.BASS_StreamCreateURL(URL, 0, Bass.BASS.BASS_STREAM_BLOCK
+                                | Bass.BASS.BASS_STREAM_STATUS | Bass.BASS.BASS_STREAM_AUTOFREE,
+                        Controller.getInstance().BassManager.StatusProc, r);
+                lock (lockObject)
+                {
+                    if (r != req)
+                    {
+                        if (c != 0)
+                            Bass.BASS.BASS_StreamFree(c);
+                        return;
+                    }
+                    Controller.getInstance().BassManager.Chan = c;
+                }
+
+                if (Controller.getInstance().BassManager.Chan != 0)
+                {
+                    //handler.postDelayed(timer, 50); 
+                }
             });
         }
 
-
-        public class MyStatusProc : Bass.BASS.DOWNLOADPROC
+        private void OpenURLAAC(string URL)
         {
-            /**
-             * Тут можно получить байты потока. Используется для записи.
-             * @param buffer Данные потока
-             * @param length Длина куска данных потока
-             * @param user BASS.dll магия. ХЗ что это
-             */
-            public void DOWNLOADPROC(MemoryStream buffer, int length, Object user)
+            Task.Run(() =>
             {
-                /*if (PlayerState.getInstance().isRecActive())
+                int r;
+                lock (lockObject)
                 {
-                    byte[] ba = new byte[length];
-                    FileOutputStream fos = null;
-                    try
-                    {
-                        buffer.get(ba);
-                        //1111
-                        fos = new FileOutputStream(PlayerState.getInstance().getF().toString(), true);
-                        fos.write(ba);
-                        PlayerState.getInstance().setRecArtist("");
-                        PlayerState.getInstance().setRecTime("");
-                        PlayerState.getInstance().setRecTitle(PlayerState.getInstance().getCurrentSong());
-                        PlayerState.getInstance().setRecURL("");
+                    r = ++req;
+                }
+                Bass.BASS.BASS_StreamFree(Controller.getInstance().BassManager.Chan); // close old stream
+                Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => { Controller.getInstance().RadioManager.CurrentTitle = LocalizedStrings.Instance.getString("Connecting"); });
+                int c = Bass.BASS_AAC.BASS_AAC_StreamCreateURL(URL, 0, Bass.BASS.BASS_STREAM_BLOCK
+                            | Bass.BASS.BASS_STREAM_STATUS
+                            | Bass.BASS.BASS_STREAM_AUTOFREE, Controller.getInstance().BassManager.StatusProc, r); // open
+                                                                                                                   // URL
+                lock (lockObject)
+                {
+                    if (r != req)
+                    { // there is a newer request, discard this
+                      // stream
+                        if (c != 0)
+                            Bass.BASS.BASS_StreamFree(c);
+                        return;
                     }
-                    catch (Exception e1)
-                    {
-                        e1.printStackTrace();
-                    }
-                    try
-                    {
-                        if (fos != null)
-                        {
-                            fos.flush();
-                            fos.close();
-                        }
-                    }
-                    catch (Exception e1)
-                    {
-                        e1.printStackTrace();
-                    }
-                }*/
-            }
+                    Controller.getInstance().BassManager.Chan = c; // this is now the current stream
+                }
+
+                if (Controller.getInstance().BassManager.Chan != 0)
+                {
+                    //handler.postDelayed(timer, 50);
+                }
+            });
         }
+
+    private void bitrateClick(object sender, TappedRoutedEventArgs e)
+    {
+        //TODO меняем текущий битрейт
+        Controller.getInstance().RadioManager.CurrentBitrate = (Bitrates)Enum.Parse(typeof(Bitrates), (sender as StackPanel).Tag.ToString());
+        /*PlayerState.getInstance().setCurrent_stream(Integer.parseInt(v.getTag().toString()));
+        if (PlayerState.getInstance().getCurrentRadioEntity() != null)
+        {
+            ImageView b = (ImageView)mainFragmentView.findViewById(R.id.streamButton);
+            b.performClick();
+            b.performClick();
+        }*/
     }
+
+    private void Rec_Button_Click(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+}
 }
