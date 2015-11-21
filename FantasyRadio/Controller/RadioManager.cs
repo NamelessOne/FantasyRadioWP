@@ -50,6 +50,12 @@ namespace FantasyRadio
             {
                 currentPlayStatus = value;
                 Notify("PlayPauseImage");
+                if(value==false)
+                {
+                    CurrentTitle = "";
+                    if (CurrentRecStatus)
+                        CurrentRecStatus = false;
+                }
             }
         }
 

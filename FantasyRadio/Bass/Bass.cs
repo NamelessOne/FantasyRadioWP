@@ -710,7 +710,7 @@ namespace FantasyRadio.Bass
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern bool BASS_ChannelGetInfo(int handle, BASS_CHANNELINFO info);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern string BASS_ChannelGetTags(int handle, int tags);
+        public static extern IntPtr BASS_ChannelGetTags(int handle, int tags);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern long BASS_ChannelFlags(int handle, int flags, int mask);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]

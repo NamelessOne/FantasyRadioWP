@@ -2,6 +2,7 @@
 using FantasyRadio.Data;
 using System;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
@@ -171,7 +172,7 @@ namespace FantasyRadio
 
         #endregion
 
-        private void Play_Pause_Button_click(object sender, RoutedEventArgs e)
+        private async void Play_Pause_Button_click(object sender, RoutedEventArgs e)
         {
             if (!Controller.getInstance().RadioManager.CurrentPlayStatus)
             {
@@ -183,16 +184,7 @@ namespace FantasyRadio
             }
             else
             {
-                if (Controller.getInstance().RadioManager.CurrentRecStatus)
-                    Controller.getInstance().RadioManager.CurrentRecStatus = false;
-                //Task.Run(() =>
-                //{
-                //Bass.BASS.BASS_Stop();
-                //Bass.BASS.BASS_StreamFree(Controller.getInstance().BassManager.Chan); //TODO здесь падает
-                //Bass.BASS.BASS_Stop();
-                //});
-                //Bass.BASS.BASS_SetVolume((float)0.1);
-                Bass.BASS.BASS_ChannelStop(Controller.getInstance().BassManager.Chan);
+                Bass.BASS.BASS_StreamFree(Controller.getInstance().BassManager.Chan);
                 Controller.getInstance().RadioManager.CurrentPlayStatus = false;
             }
         }
@@ -208,26 +200,29 @@ namespace FantasyRadio
 
         private void timerAction(object sender, object e)
         {
+                  
             // monitor prebuffering progress
             int progress = (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_FILEPOS_BUFFER);
             if (progress == -1)
             { // failed, eg. stream freed
                 timer.Stop(); // stop monitoring
+                Controller.getInstance().RadioManager.CurrentPlayStatus = false;
                 return;
             }
+            Controller.getInstance().RadioManager.CurrentPlayStatus = true;
             progress = progress * 100 / (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_FILEPOS_END);
             if (progress > 75
                     || Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan,
                     Bass.BASS.BASS_FILEPOS_CONNECTED) == 0)
             {
-                string icy = Bass.BASS.BASS_ChannelGetTags(
-                        Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_ICY);
+                string icy = Marshal.PtrToStringAnsi(Bass.BASS.BASS_ChannelGetTags(
+                        Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_ICY)); //TODO Проблема здесь.
                 if (icy == null)
-                    icy = Bass.BASS.BASS_ChannelGetTags(
-                            Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_HTTP);
-                DoMeta();
+                    icy = Marshal.PtrToStringAnsi(Bass.BASS.BASS_ChannelGetTags(
+                            Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_HTTP)); //TODO И здесь (иногда).
+                DoMeta(); //TODO И здесь.
                 Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().BassManager.Chan,
-                        Bass.BASS.BASS_SYNC_META, 0, MetaSync, 0);
+                        Bass.BASS.BASS_SYNC_META, 0, MetaSync, 0); //TODO И здесь.*/
                 Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().BassManager.Chan,
                         Bass.BASS.BASS_SYNC_OGG_CHANGE, 0, MetaSync, 0);
                 Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().BassManager.Chan,
@@ -240,6 +235,15 @@ namespace FantasyRadio
             {
                 Controller.getInstance().RadioManager.CurrentTitle = string.Format("buffering... {0}", progress);
             }
+            /*int progress = (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_FILEPOS_BUFFER);
+            progress = progress * 100 / (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_FILEPOS_END);
+            Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_FILEPOS_CONNECTED);
+            Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().BassManager.Chan,
+                    Bass.BASS.BASS_SYNC_OGG_CHANGE, 0, MetaSync, 0);
+            Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().BassManager.Chan,
+                    Bass.BASS.BASS_SYNC_END, 0, EndSync, 0);
+            Bass.BASS.BASS_ChannelPlay(Controller.getInstance().BassManager.Chan, false);
+            timer.Stop();*/
         }
 
         private Bass.BASS.SYNCPROC MetaSync = new MyMetaSync();
@@ -261,11 +265,11 @@ namespace FantasyRadio
                 Controller.getInstance().RadioManager.CurrentTitle = "";
             }
         };
-
+        
         private void DoMeta()
         {
-            string meta = Bass.BASS.BASS_ChannelGetTags(Controller.getInstance().BassManager.Chan,
-                    Bass.BASS.BASS_TAG_META);
+            string meta = Marshal.PtrToStringAnsi(Bass.BASS.BASS_ChannelGetTags(Controller.getInstance().BassManager.Chan,
+                    Bass.BASS.BASS_TAG_META));
             if (meta != null)
             {
                 int ti = meta.IndexOf("StreamTitle='");
@@ -284,8 +288,8 @@ namespace FantasyRadio
                 }
                 else
                 {
-                    string ogg = Bass.BASS.BASS_ChannelGetTags(
-                            Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_OGG);
+                    string ogg = Marshal.PtrToStringAnsi(Bass.BASS.BASS_ChannelGetTags(
+                            Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_OGG));
                     if (ogg != null)
                     { // got Icecast/OGG tags
                         string artist = null, title = null;
@@ -310,8 +314,7 @@ namespace FantasyRadio
             else
             {
                 Controller.getInstance().RadioManager.CurrentTitle = "";
-            }
-            Controller.getInstance().RadioManager.CurrentPlayStatus = true;
+            }           
         }
 
         private object lockObject = new object();
@@ -331,7 +334,10 @@ namespace FantasyRadio
                     Controller.getInstance().BassManager.StatusProc, r);*/
 
             int c = Bass.BASS.BASS_StreamCreateURL(URL, 0, Bass.BASS.BASS_STREAM_BLOCK | Bass.BASS.BASS_STREAM_STATUS | Bass.BASS.BASS_STREAM_AUTOFREE, null /*Controller.getInstance().BassManager.StatusProc*/, r); // open URL
-
+            //--------------------------------------------OLOLOLO--------------------------------------------
+            //Bass.BASS.BASS_ChannelPlay(c, false);
+            //Bass.BASS.BASS_StreamFree(c);
+            //-----------------------------------------------------------------------------------------------
             lock (lockObject)
             {
                 if (r != req)
@@ -345,6 +351,7 @@ namespace FantasyRadio
 
             if (Controller.getInstance().BassManager.Chan != 0)
             {
+                //Bass.BASS.BASS_ChannelPlay(c, false);
                 Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => { timer.Start(); });
                 //handler.postDelayed(timer, 50); 
             }
