@@ -217,6 +217,8 @@ namespace FantasyRadio.Bass
 
         public const int BASS_RECORD_PAUSE = 0x8000; // start recording paused
 
+        public const uint BASS_UNICODE = 0x80000000;
+
         // Channel info structure
         public class BASS_CHANNELINFO
         {
@@ -334,7 +336,7 @@ namespace FantasyRadio.Bass
 
         public interface DOWNLOADPROC
         {
-            void DOWNLOADPROC(MemoryStream buffer, int length, Object user);
+            void DOWNLOADPROC(IntPtr buffer, int length, int user);
             /* Internet stream download callback function.
             buffer : Buffer containing the downloaded data... NULL=end of download
             length : Number of bytes in the buffer
@@ -565,7 +567,7 @@ namespace FantasyRadio.Bass
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_GetConfig(int option);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern bool BASS_SetConfigPtr(int option, IntPtr ptr);
+        public static extern bool BASS_SetConfigPtr(uint option, string ptr);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern Object BASS_GetConfigPtr(int option);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
@@ -575,7 +577,7 @@ namespace FantasyRadio.Bass
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern bool BASS_GetDeviceInfo(int device, BASS_DEVICEINFO info);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern bool BASS_Init(int device, uint freq, uint flags, IntPtr win, IntPtr clsid);
+        public static extern bool BASS_Init(int device, uint freq, uint flags/*, IntPtr win, IntPtr clsid*/);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern bool BASS_SetDevice(int device);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
@@ -708,7 +710,7 @@ namespace FantasyRadio.Bass
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern bool BASS_ChannelGetInfo(int handle, BASS_CHANNELINFO info);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern Object BASS_ChannelGetTags(int handle, int tags);
+        public static extern string BASS_ChannelGetTags(int handle, int tags);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern long BASS_ChannelFlags(int handle, int flags, int mask);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
@@ -748,7 +750,7 @@ namespace FantasyRadio.Bass
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_ChannelGetData(int handle, MemoryStream buffer, int length);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern int BASS_ChannelSetSync(int handle, int type, long param, SYNCPROC proc, Object user);
+        public static extern int BASS_ChannelSetSync(int handle, int type, long param, SYNCPROC proc, uint user);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern bool BASS_ChannelRemoveSync(int handle, int sync);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
@@ -781,7 +783,7 @@ namespace FantasyRadio.Bass
             public static int MAKELONG(int a, int b) { return (a & 0xffff) | (b << 16); }
         }
    }
-    public class BASS_AAC
+    /*public class BASS_AAC
     {
         // Additional BASS_SetConfig options
         public const int BASS_CONFIG_MP4_VIDEO = 0x10700; // play the audio from MP4 videos
@@ -807,5 +809,5 @@ namespace FantasyRadio.Bass
         public static extern int BASS_MP4_StreamCreateFile(MemoryStream file, long offset, long length, int flags);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_MP4_StreamCreateFileUser(int system, int flags, BASS.BASS_FILEPROCS procs, object user);
-    }
+    }*/
 }

@@ -163,7 +163,7 @@ namespace FantasyRadio
                 case Bitrates.MP364:
                     return LocalizedStrings.Instance.getString("stream_url_MP364");
                 case Bitrates.AAC112:
-                    return LocalizedStrings.Instance.getString("stream_url_MP112");
+                    return LocalizedStrings.Instance.getString("stream_url_AAC112");
                 case Bitrates.MP396:
                     return LocalizedStrings.Instance.getString("stream_url_MP396");
                 default:

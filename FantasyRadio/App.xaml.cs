@@ -1,6 +1,7 @@
 ﻿using FantasyRadio.Common;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -39,6 +40,7 @@ namespace FantasyRadio
         {
             this.InitializeComponent();
             this.Suspending += this.OnSuspending;
+            this.UnhandledException += this.Application_UnhandledException;
         }
 
         /// <summary>
@@ -116,14 +118,15 @@ namespace FantasyRadio
             }
             //----------------------------------------------
 
-            if(!Bass.BASS.BASS_Init(-1, 44100, 0, IntPtr.Zero, IntPtr.Zero))
+            if(!Bass.BASS.BASS_Init(-1, 44100, 0/*, IntPtr.Zero, IntPtr.Zero*/))
             {
                 throw new Exception("fail init");
             }
             Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PLAYLIST, 1); // enable playlist processing
             Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PREBUF, 0); // minimize automatic pre-buffering, so we can do it (and display it) instead
-            Bass.BASS.BASS_SetConfigPtr(Bass.BASS.BASS_CONFIG_NET_PROXY, IntPtr.Zero);
-            //Bass.BASS.BASS_SetVolume((float)0.5);
+                                                                           //Bass.BASS.BASS_SetConfigPtr(Bass.BASS.BASS_CONFIG_NET_PROXY, IntPtr.Zero);
+                                                                           //Bass.BASS.BASS_SetVolume((float)0.5);
+            //Bass.BASS.BASS_SetConfigPtr(Bass.BASS.BASS_CONFIG_NET_AGENT | Bass.BASS.BASS_UNICODE, "My App");
 
             /*Bass.BASS.BASS_Free();
             Bass.BASS.BASS_Init(-1, 44100, 0);
@@ -157,6 +160,10 @@ namespace FantasyRadio
             var deferral = e.SuspendingOperation.GetDeferral();
             await SuspensionManager.SaveAsync();
             deferral.Complete();
+        }
+        private void Application_UnhandledException(object sender, object e)
+        {
+            Debug.WriteLine(e.ToString());
         }
     }
 }

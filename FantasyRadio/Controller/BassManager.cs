@@ -1,12 +1,22 @@
 ﻿using System;
-using System.IO;
 
 namespace FantasyRadio
 {
     class BassManager
     {
-        public int Chan { get; set; }
-        public Bass.BASS.DOWNLOADPROC StatusProc { get; } = new MyStatusProc();
+        private int chan;
+        public int Chan
+        {
+            get
+            {
+                return chan;
+            }
+            set
+            {
+                chan = value;
+            }
+        }
+        public Bass.BASS.DOWNLOADPROC StatusProc { get; set; } = new MyStatusProc();
 
         private class MyStatusProc : Bass.BASS.DOWNLOADPROC
         {
@@ -16,7 +26,7 @@ namespace FantasyRadio
              * @param length Длина куска данных потока
              * @param user BASS.dll магия. ХЗ что это
              */
-            public void DOWNLOADPROC(MemoryStream buffer, int length, object user)
+            public void DOWNLOADPROC(IntPtr buffer, int length, int user)
             {
                 /*if (PlayerState.getInstance().isRecActive())
                 {

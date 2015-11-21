@@ -2,14 +2,11 @@
 using FantasyRadio.Data;
 using System;
 using System.Globalization;
-using System.IO;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Resources;
-using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 // Документацию по шаблону "Приложение с Pivot" см. по адресу http://go.microsoft.com/fwlink/?LinkID=391641
@@ -24,10 +21,17 @@ namespace FantasyRadio
         private readonly NavigationHelper navigationHelper;
         private readonly ObservableDictionary defaultViewModel = new ObservableDictionary();
         private readonly ResourceLoader resourceLoader = ResourceLoader.GetForCurrentView("Resources");
+        private static PivotPage pivotPage;
+        private const long DURATION = 500000;
+        DispatcherTimer timer = new DispatcherTimer();
 
         public PivotPage()
         {
             this.InitializeComponent();
+            pivotPage = this;
+            TimeSpan ts = new TimeSpan(500000);
+            timer.Tick += new EventHandler<object>(timerAction);
+            //timer.Tick += timerAction(this, null);
             //--------------------------------------BINDINGS-----------------------------
             RadioTitle.DataContext = Controller.getInstance().RadioManager;
             PlayPauseButton.DataContext = Controller.getInstance().RadioManager;
@@ -169,14 +173,27 @@ namespace FantasyRadio
 
         private void Play_Pause_Button_click(object sender, RoutedEventArgs e)
         {
-            string streamUrl = Controller.getInstance().RadioManager.getCurrentBitrateUrl();
-            if(Controller.getInstance().RadioManager.CurrentBitrate==Bitrates.AAC16|| Controller.getInstance().RadioManager.CurrentBitrate == Bitrates.AAC112)
+            if (!Controller.getInstance().RadioManager.CurrentPlayStatus)
             {
-                OpenURLAAC(streamUrl);
+                string streamUrl = Controller.getInstance().RadioManager.getCurrentBitrateUrl();
+                Task.Run(() =>
+                {
+                    OpenURL(streamUrl);
+                });
             }
             else
             {
-                OpenURL(streamUrl);
+                if (Controller.getInstance().RadioManager.CurrentRecStatus)
+                    Controller.getInstance().RadioManager.CurrentRecStatus = false;
+                //Task.Run(() =>
+                //{
+                //Bass.BASS.BASS_Stop();
+                //Bass.BASS.BASS_StreamFree(Controller.getInstance().BassManager.Chan); //TODO здесь падает
+                //Bass.BASS.BASS_Stop();
+                //});
+                //Bass.BASS.BASS_SetVolume((float)0.1);
+                Bass.BASS.BASS_ChannelStop(Controller.getInstance().BassManager.Chan);
+                Controller.getInstance().RadioManager.CurrentPlayStatus = false;
             }
         }
 
@@ -189,91 +206,170 @@ namespace FantasyRadio
 		((TextBlock^)FindName(L"status3"))->Text = "";
 	}));*/
 
+        private void timerAction(object sender, object e)
+        {
+            // monitor prebuffering progress
+            int progress = (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_FILEPOS_BUFFER);
+            if (progress == -1)
+            { // failed, eg. stream freed
+                timer.Stop(); // stop monitoring
+                return;
+            }
+            progress = progress * 100 / (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_FILEPOS_END);
+            if (progress > 75
+                    || Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan,
+                    Bass.BASS.BASS_FILEPOS_CONNECTED) == 0)
+            {
+                string icy = Bass.BASS.BASS_ChannelGetTags(
+                        Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_ICY);
+                if (icy == null)
+                    icy = Bass.BASS.BASS_ChannelGetTags(
+                            Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_HTTP);
+                DoMeta();
+                Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().BassManager.Chan,
+                        Bass.BASS.BASS_SYNC_META, 0, MetaSync, 0);
+                Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().BassManager.Chan,
+                        Bass.BASS.BASS_SYNC_OGG_CHANGE, 0, MetaSync, 0);
+                Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().BassManager.Chan,
+                        Bass.BASS.BASS_SYNC_END, 0, EndSync, 0);
+                // play it!
+                Bass.BASS.BASS_ChannelPlay(Controller.getInstance().BassManager.Chan, false);
+                timer.Stop();
+            }
+            else
+            {
+                Controller.getInstance().RadioManager.CurrentTitle = string.Format("buffering... {0}", progress);
+            }
+        }
+
+        private Bass.BASS.SYNCPROC MetaSync = new MyMetaSync();
+
+        private class MyMetaSync : Bass.BASS.SYNCPROC
+        {
+            public void SYNCPROC(int handle, int channel, int data, object user)
+            {
+                pivotPage.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => pivotPage.DoMeta());
+            }
+        }
+
+
+        private Bass.BASS.SYNCPROC EndSync = new MyEndSync();
+        private class MyEndSync : Bass.BASS.SYNCPROC
+        {
+            public void SYNCPROC(int handle, int channel, int data, Object user)
+            {
+                Controller.getInstance().RadioManager.CurrentTitle = "";
+            }
+        };
+
+        private void DoMeta()
+        {
+            string meta = Bass.BASS.BASS_ChannelGetTags(Controller.getInstance().BassManager.Chan,
+                    Bass.BASS.BASS_TAG_META);
+            if (meta != null)
+            {
+                int ti = meta.IndexOf("StreamTitle='");
+                int te = meta.IndexOf(";");
+                if (ti >= 0)
+                {
+                    string title = "No title";
+                    try
+                    {
+                        title = meta.Substring(ti + 13, te - 13);
+                    }
+                    finally
+                    {
+                        Controller.getInstance().RadioManager.CurrentTitle = title;
+                    }
+                }
+                else
+                {
+                    string ogg = Bass.BASS.BASS_ChannelGetTags(
+                            Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_OGG);
+                    if (ogg != null)
+                    { // got Icecast/OGG tags
+                        string artist = null, title = null;
+                        if (ogg.IndexOf("artist=", 0, ("artist=".Length)) == 0)
+                        {
+                            artist = ogg.Substring(7);
+                        }
+                        else if (ogg.IndexOf("title=", 0, ("title=".Length)) == 0)
+                        {
+                            title = ogg.Substring(6);
+                        }
+                        if (title != null)
+                        {
+                            if (artist != null)
+                                Controller.getInstance().RadioManager.CurrentTitle = artist + " - " + title;
+                            else
+                                Controller.getInstance().RadioManager.CurrentTitle = title;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Controller.getInstance().RadioManager.CurrentTitle = "";
+            }
+            Controller.getInstance().RadioManager.CurrentPlayStatus = true;
+        }
+
         private object lockObject = new object();
         private int req;
 
         private void OpenURL(string URL)
         {
-            Task.Run(() =>
+            int r;
+            lock (lockObject)
             {
-                int r;
-                lock (lockObject)
-                {
-                    r = ++req;
-                }
-                Bass.BASS.BASS_StreamFree(Controller.getInstance().BassManager.Chan);
-                Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => { Controller.getInstance().RadioManager.CurrentTitle = LocalizedStrings.Instance.getString("Connecting"); });            
-                int c = Bass.BASS.BASS_StreamCreateURL(URL, 0, Bass.BASS.BASS_STREAM_BLOCK
-                                | Bass.BASS.BASS_STREAM_STATUS | Bass.BASS.BASS_STREAM_AUTOFREE,
-                        Controller.getInstance().BassManager.StatusProc, r);
-                lock (lockObject)
-                {
-                    if (r != req)
-                    {
-                        if (c != 0)
-                            Bass.BASS.BASS_StreamFree(c);
-                        return;
-                    }
-                    Controller.getInstance().BassManager.Chan = c;
-                }
+                r = ++req;
+            }
+            Bass.BASS.BASS_StreamFree(Controller.getInstance().BassManager.Chan);
+            Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => { Controller.getInstance().RadioManager.CurrentTitle = LocalizedStrings.Instance.getString("Connecting"); });
+            /*int c = Bass.BASS.BASS_StreamCreateURL(URL, 0, Bass.BASS.BASS_STREAM_BLOCK
+                            | Bass.BASS.BASS_STREAM_STATUS | Bass.BASS.BASS_STREAM_AUTOFREE,
+                    Controller.getInstance().BassManager.StatusProc, r);*/
 
-                if (Controller.getInstance().BassManager.Chan != 0)
+            int c = Bass.BASS.BASS_StreamCreateURL(URL, 0, Bass.BASS.BASS_STREAM_BLOCK | Bass.BASS.BASS_STREAM_STATUS | Bass.BASS.BASS_STREAM_AUTOFREE, null /*Controller.getInstance().BassManager.StatusProc*/, r); // open URL
+
+            lock (lockObject)
+            {
+                if (r != req)
                 {
-                    //handler.postDelayed(timer, 50); 
+                    if (c != 0)
+                        Bass.BASS.BASS_StreamFree(c);
+                    return;
                 }
-            });
+                Controller.getInstance().BassManager.Chan = c;
+            }
+
+            if (Controller.getInstance().BassManager.Chan != 0)
+            {
+                Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => { timer.Start(); });
+                //handler.postDelayed(timer, 50); 
+            }
+            else
+            {
+                int x = Bass.BASS.BASS_ErrorGetCode();
+            }
         }
 
-        private void OpenURLAAC(string URL)
+        private void bitrateClick(object sender, TappedRoutedEventArgs e)
         {
-            Task.Run(() =>
+            //TODO меняем текущий битрейт
+            Controller.getInstance().RadioManager.CurrentBitrate = (Bitrates)Enum.Parse(typeof(Bitrates), (sender as StackPanel).Tag.ToString());
+            /*PlayerState.getInstance().setCurrent_stream(Integer.parseInt(v.getTag().toString()));
+            if (PlayerState.getInstance().getCurrentRadioEntity() != null)
             {
-                int r;
-                lock (lockObject)
-                {
-                    r = ++req;
-                }
-                Bass.BASS.BASS_StreamFree(Controller.getInstance().BassManager.Chan); // close old stream
-                Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => { Controller.getInstance().RadioManager.CurrentTitle = LocalizedStrings.Instance.getString("Connecting"); });
-                int c = Bass.BASS_AAC.BASS_AAC_StreamCreateURL(URL, 0, Bass.BASS.BASS_STREAM_BLOCK
-                            | Bass.BASS.BASS_STREAM_STATUS
-                            | Bass.BASS.BASS_STREAM_AUTOFREE, Controller.getInstance().BassManager.StatusProc, r); // open
-                                                                                                                   // URL
-                lock (lockObject)
-                {
-                    if (r != req)
-                    { // there is a newer request, discard this
-                      // stream
-                        if (c != 0)
-                            Bass.BASS.BASS_StreamFree(c);
-                        return;
-                    }
-                    Controller.getInstance().BassManager.Chan = c; // this is now the current stream
-                }
-
-                if (Controller.getInstance().BassManager.Chan != 0)
-                {
-                    //handler.postDelayed(timer, 50);
-                }
-            });
+                ImageView b = (ImageView)mainFragmentView.findViewById(R.id.streamButton);
+                b.performClick();
+                b.performClick();
+            }*/
         }
 
-    private void bitrateClick(object sender, TappedRoutedEventArgs e)
-    {
-        //TODO меняем текущий битрейт
-        Controller.getInstance().RadioManager.CurrentBitrate = (Bitrates)Enum.Parse(typeof(Bitrates), (sender as StackPanel).Tag.ToString());
-        /*PlayerState.getInstance().setCurrent_stream(Integer.parseInt(v.getTag().toString()));
-        if (PlayerState.getInstance().getCurrentRadioEntity() != null)
+        private void Rec_Button_Click(object sender, TappedRoutedEventArgs e)
         {
-            ImageView b = (ImageView)mainFragmentView.findViewById(R.id.streamButton);
-            b.performClick();
-            b.performClick();
-        }*/
-    }
 
-    private void Rec_Button_Click(object sender, TappedRoutedEventArgs e)
-    {
-
+        }
     }
-}
 }
