@@ -4,12 +4,11 @@
     {
         private static Controller instance;
         private readonly static object syncLock = new object();
-        public RadioManager RadioManager { get; } = new RadioManager();
-        public BassManager BassManager { get; } = new BassManager();
+        public RadioManager CurrentRadioManager { get; } = new RadioManager();
+        public BassManager CurrentBassManager { get; } = new BassManager();
+        public ScheduleManager CurrentScheduleManager { get; } = new ScheduleManager();
 
-        private Controller()
-        {
-        }
+        private Controller() {}
 
         public static Controller getInstance()
         {

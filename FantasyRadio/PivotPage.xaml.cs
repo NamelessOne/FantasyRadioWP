@@ -34,14 +34,15 @@ namespace FantasyRadio
             timer.Tick += new EventHandler<object>(timerAction);
             //timer.Tick += timerAction(this, null);
             //--------------------------------------BINDINGS-----------------------------
-            RadioTitle.DataContext = Controller.getInstance().RadioManager;
-            PlayPauseButton.DataContext = Controller.getInstance().RadioManager;
-            RecButton.DataContext = Controller.getInstance().RadioManager;
-            BitratePanel1.DataContext = Controller.getInstance().RadioManager;
-            BitratePanel2.DataContext = Controller.getInstance().RadioManager;
-            BitratePanel3.DataContext = Controller.getInstance().RadioManager;
-            BitratePanel4.DataContext = Controller.getInstance().RadioManager;
-            BitratePanel5.DataContext = Controller.getInstance().RadioManager;
+            RadioTitle.DataContext = Controller.getInstance().CurrentRadioManager;
+            PlayPauseButton.DataContext = Controller.getInstance().CurrentRadioManager;
+            RecButton.DataContext = Controller.getInstance().CurrentRadioManager;
+            BitratePanel1.DataContext = Controller.getInstance().CurrentRadioManager;
+            BitratePanel2.DataContext = Controller.getInstance().CurrentRadioManager;
+            BitratePanel3.DataContext = Controller.getInstance().CurrentRadioManager;
+            BitratePanel4.DataContext = Controller.getInstance().CurrentRadioManager;
+            BitratePanel5.DataContext = Controller.getInstance().CurrentRadioManager;
+            ScheduleListView.DataContext = Controller.getInstance().CurrentScheduleManager;
             //--------------------------------------BINDINGS-----------------------------
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
@@ -174,9 +175,9 @@ namespace FantasyRadio
 
         private async void Play_Pause_Button_click(object sender, RoutedEventArgs e)
         {
-            if (!Controller.getInstance().RadioManager.CurrentPlayStatus)
+            if (!Controller.getInstance().CurrentRadioManager.CurrentPlayStatus)
             {
-                string streamUrl = Controller.getInstance().RadioManager.getCurrentBitrateUrl();
+                string streamUrl = Controller.getInstance().CurrentRadioManager.getCurrentBitrateUrl();
                 Task.Run(() =>
                 {
                     OpenURL(streamUrl);
@@ -184,8 +185,8 @@ namespace FantasyRadio
             }
             else
             {
-                Bass.BASS.BASS_StreamFree(Controller.getInstance().BassManager.Chan);
-                Controller.getInstance().RadioManager.CurrentPlayStatus = false;
+                Bass.BASS.BASS_StreamFree(Controller.getInstance().CurrentBassManager.Chan);
+                Controller.getInstance().CurrentRadioManager.CurrentPlayStatus = false;
             }
         }
 
@@ -202,38 +203,38 @@ namespace FantasyRadio
         {
                   
             // monitor prebuffering progress
-            int progress = (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_FILEPOS_BUFFER);
+            int progress = (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().CurrentBassManager.Chan, Bass.BASS.BASS_FILEPOS_BUFFER);
             if (progress == -1)
             { // failed, eg. stream freed
                 timer.Stop(); // stop monitoring
-                Controller.getInstance().RadioManager.CurrentPlayStatus = false;
+                Controller.getInstance().CurrentRadioManager.CurrentPlayStatus = false;
                 return;
             }
-            Controller.getInstance().RadioManager.CurrentPlayStatus = true;
-            progress = progress * 100 / (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_FILEPOS_END);
+            Controller.getInstance().CurrentRadioManager.CurrentPlayStatus = true;
+            progress = progress * 100 / (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().CurrentBassManager.Chan, Bass.BASS.BASS_FILEPOS_END);
             if (progress > 75
-                    || Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan,
+                    || Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().CurrentBassManager.Chan,
                     Bass.BASS.BASS_FILEPOS_CONNECTED) == 0)
             {
                 string icy = Marshal.PtrToStringAnsi(Bass.BASS.BASS_ChannelGetTags(
-                        Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_ICY)); //TODO Проблема здесь.
+                        Controller.getInstance().CurrentBassManager.Chan, Bass.BASS.BASS_TAG_ICY)); //TODO Проблема здесь.
                 if (icy == null)
                     icy = Marshal.PtrToStringAnsi(Bass.BASS.BASS_ChannelGetTags(
-                            Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_HTTP)); //TODO И здесь (иногда).
+                            Controller.getInstance().CurrentBassManager.Chan, Bass.BASS.BASS_TAG_HTTP)); //TODO И здесь (иногда).
                 DoMeta(); //TODO И здесь.
-                Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().BassManager.Chan,
+                Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().CurrentBassManager.Chan,
                         Bass.BASS.BASS_SYNC_META, 0, MetaSync, 0); //TODO И здесь.*/
-                Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().BassManager.Chan,
+                Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().CurrentBassManager.Chan,
                         Bass.BASS.BASS_SYNC_OGG_CHANGE, 0, MetaSync, 0);
-                Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().BassManager.Chan,
+                Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().CurrentBassManager.Chan,
                         Bass.BASS.BASS_SYNC_END, 0, EndSync, 0);
                 // play it!
-                Bass.BASS.BASS_ChannelPlay(Controller.getInstance().BassManager.Chan, false);
+                Bass.BASS.BASS_ChannelPlay(Controller.getInstance().CurrentBassManager.Chan, false);
                 timer.Stop();
             }
             else
             {
-                Controller.getInstance().RadioManager.CurrentTitle = string.Format("buffering... {0}", progress);
+                Controller.getInstance().CurrentRadioManager.CurrentTitle = string.Format("buffering... {0}", progress);
             }
             /*int progress = (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_FILEPOS_BUFFER);
             progress = progress * 100 / (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_FILEPOS_END);
@@ -262,13 +263,13 @@ namespace FantasyRadio
         {
             public void SYNCPROC(int handle, int channel, int data, Object user)
             {
-                Controller.getInstance().RadioManager.CurrentTitle = "";
+                Controller.getInstance().CurrentRadioManager.CurrentTitle = "";
             }
         };
         
         private void DoMeta()
         {
-            string meta = Marshal.PtrToStringAnsi(Bass.BASS.BASS_ChannelGetTags(Controller.getInstance().BassManager.Chan,
+            string meta = Marshal.PtrToStringAnsi(Bass.BASS.BASS_ChannelGetTags(Controller.getInstance().CurrentBassManager.Chan,
                     Bass.BASS.BASS_TAG_META));
             if (meta != null)
             {
@@ -283,13 +284,13 @@ namespace FantasyRadio
                     }
                     finally
                     {
-                        Controller.getInstance().RadioManager.CurrentTitle = title;
+                        Controller.getInstance().CurrentRadioManager.CurrentTitle = title;
                     }
                 }
                 else
                 {
                     string ogg = Marshal.PtrToStringAnsi(Bass.BASS.BASS_ChannelGetTags(
-                            Controller.getInstance().BassManager.Chan, Bass.BASS.BASS_TAG_OGG));
+                            Controller.getInstance().CurrentBassManager.Chan, Bass.BASS.BASS_TAG_OGG));
                     if (ogg != null)
                     { // got Icecast/OGG tags
                         string artist = null, title = null;
@@ -304,16 +305,16 @@ namespace FantasyRadio
                         if (title != null)
                         {
                             if (artist != null)
-                                Controller.getInstance().RadioManager.CurrentTitle = artist + " - " + title;
+                                Controller.getInstance().CurrentRadioManager.CurrentTitle = artist + " - " + title;
                             else
-                                Controller.getInstance().RadioManager.CurrentTitle = title;
+                                Controller.getInstance().CurrentRadioManager.CurrentTitle = title;
                         }
                     }
                 }
             }
             else
             {
-                Controller.getInstance().RadioManager.CurrentTitle = "";
+                Controller.getInstance().CurrentRadioManager.CurrentTitle = "";
             }           
         }
 
@@ -327,8 +328,8 @@ namespace FantasyRadio
             {
                 r = ++req;
             }
-            Bass.BASS.BASS_StreamFree(Controller.getInstance().BassManager.Chan);
-            Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => { Controller.getInstance().RadioManager.CurrentTitle = LocalizedStrings.Instance.getString("Connecting"); });
+            Bass.BASS.BASS_StreamFree(Controller.getInstance().CurrentBassManager.Chan);
+            Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => { Controller.getInstance().CurrentRadioManager.CurrentTitle = LocalizedStrings.Instance.getString("Connecting"); });
             /*int c = Bass.BASS.BASS_StreamCreateURL(URL, 0, Bass.BASS.BASS_STREAM_BLOCK
                             | Bass.BASS.BASS_STREAM_STATUS | Bass.BASS.BASS_STREAM_AUTOFREE,
                     Controller.getInstance().BassManager.StatusProc, r);*/
@@ -346,10 +347,10 @@ namespace FantasyRadio
                         Bass.BASS.BASS_StreamFree(c);
                     return;
                 }
-                Controller.getInstance().BassManager.Chan = c;
+                Controller.getInstance().CurrentBassManager.Chan = c;
             }
 
-            if (Controller.getInstance().BassManager.Chan != 0)
+            if (Controller.getInstance().CurrentBassManager.Chan != 0)
             {
                 //Bass.BASS.BASS_ChannelPlay(c, false);
                 Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => { timer.Start(); });
@@ -364,7 +365,7 @@ namespace FantasyRadio
         private void bitrateClick(object sender, TappedRoutedEventArgs e)
         {
             //TODO меняем текущий битрейт
-            Controller.getInstance().RadioManager.CurrentBitrate = (Bitrates)Enum.Parse(typeof(Bitrates), (sender as StackPanel).Tag.ToString());
+            Controller.getInstance().CurrentRadioManager.CurrentBitrate = (Bitrates)Enum.Parse(typeof(Bitrates), (sender as StackPanel).Tag.ToString());
             /*PlayerState.getInstance().setCurrent_stream(Integer.parseInt(v.getTag().toString()));
             if (PlayerState.getInstance().getCurrentRadioEntity() != null)
             {
@@ -376,7 +377,17 @@ namespace FantasyRadio
 
         private void Rec_Button_Click(object sender, TappedRoutedEventArgs e)
         {
+            if (Controller.getInstance().CurrentRadioManager.CurrentRecStatus)
+                Controller.getInstance().CurrentRadioManager.CurrentRecStatus = false;
+            else if (Controller.getInstance().CurrentRadioManager.CurrentPlayStatus)
+            {
+                Controller.getInstance().CurrentRadioManager.CurrentRecStatus = true;
+            }
+        }
 
+        private void Schedule_Refresh_Button_click(object sender, TappedRoutedEventArgs e)
+        {
+            Controller.getInstance().CurrentScheduleManager.Parser.parseSchedule();
         }
     }
 }

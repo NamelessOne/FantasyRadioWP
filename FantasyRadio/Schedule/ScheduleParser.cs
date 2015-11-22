@@ -1,0 +1,7 @@
+﻿namespace FantasyRadio
+{
+    class ScheduleParser
+    {
+
+    }
+}

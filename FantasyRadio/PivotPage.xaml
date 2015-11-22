@@ -76,34 +76,32 @@
             <!--Сводный элемент два-->
             <PivotItem
                 x:Uid="PivotItem2"
-                Margin="19,14.5,0,0"
-                Header="second"
-                DataContext="{Binding SecondGroup}"
-                d:DataContext="{Binding Groups[1], Source={d:DesignData Source=/DataModel/SampleData.json, Type=data:SampleDataSource}}">
+                Margin="10"
+                Header="second" BorderBrush="#FF124E67">
                 <!--Двухстрочный список без переноса текста на новую строку-->
-                <ListView
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Button Grid.Row="0"  VerticalAlignment="Top" x:Uid="RefreshScheduleButton" Margin="10" HorizontalAlignment="Stretch" BorderThickness="1" BorderBrush="#FF124E67" Tapped="Schedule_Refresh_Button_click">
+                        <TextBlock x:Uid="RefreshScheduleTextBlock"/>
+                    </Button>
+                    <ListView
+                        Grid.Row="1"
+                        Name="ScheduleListView"
                     ItemsSource="{Binding Items}"
-                    IsItemClickEnabled="True"
-                    ItemClick="ItemView_ItemClick"
-                    Loaded="SecondPivot_Loaded"
-                    ContinuumNavigationTransitionInfo.ExitElementContainer="True">
+                    IsItemClickEnabled="True">
                     <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Margin="0,0,0,9.5">
-                                <TextBlock
-                                    Text="{Binding Title}"
-                                    Pivot.SlideInAnimationGroup="1"
-                                    CommonNavigationTransitionInfo.IsStaggerElement="True"
-                                    Style="{StaticResource ListViewItemTextBlockStyle}"/>
-                                <TextBlock
-                                    Text="{Binding Description}"
-                                    Pivot.SlideInAnimationGroup="2"
-                                    CommonNavigationTransitionInfo.IsStaggerElement="True"
-                                    Style="{StaticResource ListViewItemContentTextBlockStyle}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}"/>
+                                    <TextBlock Text="{Binding Title}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
             </PivotItem>
 
             <!--Сводный элемент три-->
