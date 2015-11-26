@@ -1,5 +1,6 @@
 ﻿using FantasyRadio.DataModel;
-using System.Collections.Generic;
+using FantasyRadio.Utils;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace FantasyRadio
@@ -7,16 +8,23 @@ namespace FantasyRadio
     public class ScheduleManager : INotifyPropertyChanged
     {
         public ScheduleParser Parser { get; private set; } = new ScheduleParser();
-        private List<ScheduleEntity> scheduleItems = new List<ScheduleEntity>();
+        private ObservableCollection<KeyedList<string, ScheduleEntity>> scheduleItems = new ObservableCollection<KeyedList<string, ScheduleEntity>>();
 
-        public List<ScheduleEntity> Items {
+        public ObservableCollection<KeyedList<string, ScheduleEntity>> Items {
             get
             {
                 return scheduleItems;
             }
             set
             {
-                scheduleItems = value;
+                scheduleItems.Clear();
+                if (value != null)
+                {
+                    foreach (var item in value)
+                    {
+                        scheduleItems.Add(item);
+                    }
+                }
                 Notify("Items");
             }
         }

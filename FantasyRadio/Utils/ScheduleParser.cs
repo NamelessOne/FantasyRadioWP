@@ -5,8 +5,10 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using System.Collections.Generic;
+using System.Linq;
+using System.Collections.ObjectModel;
 
-namespace FantasyRadio
+namespace FantasyRadio.Utils
 {
     public class ScheduleParser
     {
@@ -64,10 +66,9 @@ namespace FantasyRadio
                             }
                             else
                             {
-                                se.Text = document.ToString();
+                                se.Text = entryArray[i]["description"].ToString().Replace("ПОДРОБНЕЕ", "");
                             }
                             // ---------------------------------------------
-                            string pattern2 = "yyyy'-'MM'-'dd'T'HH':'mm':'ss";
                             string startDate = entryArray[i]["start"]["dateTime"].ToString();
                             //startDate = startDate.Substring(0, startDate.IndexOf("+")); //TOD Exception
                             string endDate = entryArray[i]["end"]["dateTime"].ToString();
@@ -83,8 +84,14 @@ namespace FantasyRadio
                             string jsonerr = e.StackTrace;
                         }
                     }
-                    entityes.Reverse();
-                    Controller.getInstance().CurrentScheduleManager.Items = entityes;
+                    //entityes.Reverse();
+                    var groupedEntityes =
+                    from entity in entityes
+                    //orderby entity.Day
+                    group entity by entity.Day into entityesByDay
+                    select new KeyedList<string, ScheduleEntity>(entityesByDay);
+                    int c = groupedEntityes.Count();
+                    Controller.getInstance().CurrentScheduleManager.Items = new ObservableCollection<KeyedList<string, ScheduleEntity>>(groupedEntityes); ;
                 }
             }
             catch (Exception e)

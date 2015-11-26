@@ -80,7 +80,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
-    <Page Include="ItemPage.xaml">
+    <Page Include="ScheduleItemPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -98,16 +98,20 @@
     <Compile Include="Common\ObservableDictionary.cs" />
     <Compile Include="Common\RelayCommand.cs" />
     <Compile Include="Common\SuspensionManager.cs" />
-    <Compile Include="Controller\ScheduleManager.cs" />
-    <Compile Include="Controller\BassManager.cs" />
-    <Compile Include="Controller\Bitrates.cs" />
-    <Compile Include="Controller\Controller.cs" />
-    <Compile Include="Controller\RadioManager.cs" />
-    <Compile Include="Controller\ScheduleParser.cs" />
+    <Compile Include="ControllerPackage\ArchiveManager.cs" />
+    <Compile Include="ControllerPackage\KeyedList.cs" />
+    <Compile Include="ControllerPackage\ScheduleManager.cs" />
+    <Compile Include="ControllerPackage\BassManager.cs" />
+    <Compile Include="ControllerPackage\Bitrates.cs" />
+    <Compile Include="ControllerPackage\Controller.cs" />
+    <Compile Include="ControllerPackage\RadioManager.cs" />
+    <Compile Include="Utils\ArchiveParser.cs" />
+    <Compile Include="Utils\ScheduleParser.cs" />
+    <Compile Include="DataModel\ArchiveEntity.cs" />
     <Compile Include="DataModel\ScheduleEntity.cs" />
     <Compile Include="DataModel\SampleDataSource.cs" />
-    <Compile Include="ItemPage.xaml.cs">
-      <DependentUpon>ItemPage.xaml</DependentUpon>
+    <Compile Include="ScheduleItemPage.xaml.cs">
+      <DependentUpon>ScheduleItemPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="LocalizedStrings.cs" />
     <Compile Include="PivotPage.xaml.cs">

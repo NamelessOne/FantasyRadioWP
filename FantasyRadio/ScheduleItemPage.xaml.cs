@@ -1,6 +1,9 @@
 ﻿using FantasyRadio.Common;
 using FantasyRadio.Data;
+using FantasyRadio.DataModel;
+using System;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 
 // Документацию по шаблону "Приложение с Pivot" см. по адресу http://go.microsoft.com/fwlink/?LinkID=391641
@@ -10,12 +13,12 @@ namespace FantasyRadio
     /// <summary>
     /// Страница, на которой отображаются сведения об отдельном элементе внутри группы.
     /// </summary>
-    public sealed partial class ItemPage : Page
+    public sealed partial class ScheduleItemPage : Page
     {
         private readonly NavigationHelper navigationHelper;
         private readonly ObservableDictionary defaultViewModel = new ObservableDictionary();
 
-        public ItemPage()
+        public ScheduleItemPage()
         {
             this.InitializeComponent();
 
@@ -89,12 +92,26 @@ namespace FantasyRadio
         /// событий, которые не могут отменить запрос навигации.</param>
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            this.navigationHelper.OnNavigatedTo(e);
+            var item = e.Parameter as ScheduleEntity;
+            ScheduleItemTitle.Text = item.Title;
+            ScheduleItemDescription.Text = item.Text;
+            if (item.ImageURL != null)
+            {
+                var bitmap = new BitmapImage(new Uri(item.ImageURL));
+                ScheduleItemImage.Source = bitmap;
+            }
+            //bitmap.ImageOpened += (s, ev) => this.ShowImage();
+            //ScheduleItemImage.BaseUri = item.ImageURL;
+            //this.navigationHelper.OnNavigatedTo(e);
+        }
+
+        private void ShowImage()
+        {
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            this.navigationHelper.OnNavigatedFrom(e);
+            //this.navigationHelper.OnNavigatedFrom(e);
         }
 
         #endregion

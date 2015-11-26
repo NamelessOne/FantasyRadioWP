@@ -9,6 +9,7 @@
     mc:Ignorable="d"
     DataContext="{Binding DefaultViewModel, RelativeSource={RelativeSource Self}}"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
     <Page.Transitions>
         <TransitionCollection>
             <NavigationThemeTransition>
@@ -18,6 +19,11 @@
             </NavigationThemeTransition>
         </TransitionCollection>
     </Page.Transitions>
+
+    <Page.Resources>
+        <CollectionViewSource x:Name="ScheduleCollection"  x:Key="ScheduleColection" IsSourceGrouped="True" Source="{Binding Items}">
+        </CollectionViewSource>
+    </Page.Resources>
 
     <Grid>
         <Pivot x:Uid="Pivot" Title="MY APPLICATION" x:Name="pivot" CommonNavigationTransitionInfo.IsStaggerElement="True">
@@ -50,7 +56,7 @@
                             </Button.Background>
                         </Button>
                         <TextBlock Grid.Column="3"/>
-                        <TextBlock Grid.Column="4" x:Name="RadioTitle" x:Uid="RadioTitle" Text="{Binding CurrentTitle}"/>
+                        <TextBlock TextWrapping="Wrap" Grid.Column="4" x:Name="RadioTitle" x:Uid="RadioTitle" Text="{Binding CurrentTitle}"/>
                     </Grid>
                     <Line Height="1" Margin="5" Stroke="White"/>
                     <StackPanel Orientation="Vertical">
@@ -87,17 +93,34 @@
                     <Button Grid.Row="0"  VerticalAlignment="Top" x:Uid="RefreshScheduleButton" Margin="10" HorizontalAlignment="Stretch" BorderThickness="1" BorderBrush="#FF124E67" Tapped="Schedule_Refresh_Button_click">
                         <TextBlock x:Uid="RefreshScheduleTextBlock"/>
                     </Button>
+
                     <ListView
                         Grid.Row="1"
                         Name="ScheduleListView"
-                    ItemsSource="{Binding Items}"
-                    IsItemClickEnabled="True">
-                    <ListView.ItemTemplate>
+                        IsItemClickEnabled="True"
+                        ItemsSource="{Binding Source={StaticResource ScheduleColection}}">
+                        <!--ItemsSource="{Binding Items}"-->
+                        <ListView.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Width="{Binding ElementName=ScheduleListView, Path=ActualWidth}"  Background="#FF0C648C">
+                                            <TextBlock Margin="5" FontWeight="Bold" Text="{Binding Key}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </ListView.GroupStyle>
+                        <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Title}"/>
-                                    <TextBlock Text="{Binding Title}"/>
-                                </StackPanel>
+                                <Grid Tag="{Binding}"  Tapped="ScheduleItemTapped">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="2*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock TextAlignment="Center" Grid.Column="0" Padding="3" Text="{Binding Time}"/>
+                                    <TextBlock TextWrapping="Wrap" Grid.Column="1" Padding="3" Text="{Binding Title}"/>
+                                </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>

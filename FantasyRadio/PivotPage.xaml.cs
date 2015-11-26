@@ -1,5 +1,6 @@
 ﻿using FantasyRadio.Common;
 using FantasyRadio.Data;
+using FantasyRadio.DataModel;
 using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -30,7 +31,7 @@ namespace FantasyRadio
         {
             this.InitializeComponent();
             pivotPage = this;
-            TimeSpan ts = new TimeSpan(500000);
+            TimeSpan ts = new TimeSpan(DURATION);
             timer.Tick += new EventHandler<object>(timerAction);
             //timer.Tick += timerAction(this, null);
             //--------------------------------------BINDINGS-----------------------------
@@ -43,6 +44,8 @@ namespace FantasyRadio
             BitratePanel4.DataContext = Controller.getInstance().CurrentRadioManager;
             BitratePanel5.DataContext = Controller.getInstance().CurrentRadioManager;
             ScheduleListView.DataContext = Controller.getInstance().CurrentScheduleManager;
+            //Controller.getInstance().CurrentScheduleManager.Parser.parseSchedule();
+            ScheduleCollection.Source = Controller.getInstance().CurrentScheduleManager.Items;
             //--------------------------------------BINDINGS-----------------------------
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
@@ -131,7 +134,7 @@ namespace FantasyRadio
             // Переход к соответствующей странице назначения и настройка новой страницы
             // путем передачи необходимой информации в виде параметра навигации
             var itemId = ((SampleDataItem)e.ClickedItem).UniqueId;
-            if (!Frame.Navigate(typeof(ItemPage), itemId))
+            if (!Frame.Navigate(typeof(ScheduleItemPage), itemId))
             {
                 throw new Exception(this.resourceLoader.GetString("NavigationFailedExceptionMessage"));
             }
@@ -388,6 +391,13 @@ namespace FantasyRadio
         private void Schedule_Refresh_Button_click(object sender, TappedRoutedEventArgs e)
         {
             Controller.getInstance().CurrentScheduleManager.Parser.parseSchedule();
+        }
+
+        private void ScheduleItemTapped(object sender, TappedRoutedEventArgs e)
+        {
+            var panel = sender as Grid;
+            var tag = panel.Tag as ScheduleEntity;
+            Frame.Navigate(typeof(ScheduleItemPage), tag);
         }
     }
 }
