@@ -44,8 +44,9 @@ namespace FantasyRadio
             BitratePanel4.DataContext = Controller.getInstance().CurrentRadioManager;
             BitratePanel5.DataContext = Controller.getInstance().CurrentRadioManager;
             ScheduleListView.DataContext = Controller.getInstance().CurrentScheduleManager;
-            //Controller.getInstance().CurrentScheduleManager.Parser.parseSchedule();
             ScheduleCollection.Source = Controller.getInstance().CurrentScheduleManager.Items;
+            ArchiveListView.DataContext = Controller.getInstance().CurrentArchiveManager;
+            ArchieveCollection.Source = Controller.getInstance().CurrentArchiveManager.Items;
             //--------------------------------------BINDINGS-----------------------------
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
@@ -388,7 +389,7 @@ namespace FantasyRadio
             }
         }
 
-        private void Schedule_Refresh_Button_click(object sender, TappedRoutedEventArgs e)
+        private void ScheduleRefreshButtonclick(object sender, TappedRoutedEventArgs e)
         {
             Controller.getInstance().CurrentScheduleManager.Parser.parseSchedule();
         }
@@ -398,6 +399,16 @@ namespace FantasyRadio
             var panel = sender as Grid;
             var tag = panel.Tag as ScheduleEntity;
             Frame.Navigate(typeof(ScheduleItemPage), tag);
+        }
+
+        private void ArchiveRefreshButtonclick(object sender, TappedRoutedEventArgs e)
+        {
+            Controller.getInstance().CurrentArchiveManager.Parser.ParseArchieve(Controller.getInstance().CurrentArchiveManager.Login, Controller.getInstance().CurrentArchiveManager.Password);
+        }
+
+        private void DownloadTap(object sender, TappedRoutedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
     }
 }

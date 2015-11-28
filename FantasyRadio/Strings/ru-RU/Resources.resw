@@ -192,4 +192,7 @@
   <data name="RefreshScheduleTextBlock.Text" xml:space="preserve">
     <value>Обновить</value>
   </data>
+  <data name="RefreshArchiveTextBlock.Text" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
 </root>

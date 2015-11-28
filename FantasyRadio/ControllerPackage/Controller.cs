@@ -7,6 +7,7 @@
         public RadioManager CurrentRadioManager { get; } = new RadioManager();
         public BassManager CurrentBassManager { get; } = new BassManager();
         public ScheduleManager CurrentScheduleManager { get; } = new ScheduleManager();
+        public ArchiveManager CurrentArchiveManager { get; } = new ArchiveManager();
 
         private Controller() {}
 

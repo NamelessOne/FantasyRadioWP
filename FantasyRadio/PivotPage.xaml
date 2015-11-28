@@ -21,8 +21,8 @@
     </Page.Transitions>
 
     <Page.Resources>
-        <CollectionViewSource x:Name="ScheduleCollection"  x:Key="ScheduleColection" IsSourceGrouped="True" Source="{Binding Items}">
-        </CollectionViewSource>
+        <CollectionViewSource x:Name="ScheduleCollection"  x:Key="ScheduleColection" IsSourceGrouped="True" Source="{Binding Items}"/>
+        <CollectionViewSource x:Name="ArchieveCollection"  x:Key="ArchieveColection" IsSourceGrouped="True" Source="{Binding Items}"/>
     </Page.Resources>
 
     <Grid>
@@ -90,7 +90,7 @@
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Button Grid.Row="0"  VerticalAlignment="Top" x:Uid="RefreshScheduleButton" Margin="10" HorizontalAlignment="Stretch" BorderThickness="1" BorderBrush="#FF124E67" Tapped="Schedule_Refresh_Button_click">
+                    <Button Grid.Row="0" Padding="0, 10, 0, 10"  VerticalAlignment="Top" x:Uid="RefreshScheduleButton" Margin="10" HorizontalAlignment="Stretch" BorderThickness="1" BorderBrush="#FF124E67" Tapped="ScheduleRefreshButtonclick">
                         <TextBlock x:Uid="RefreshScheduleTextBlock"/>
                     </Button>
 
@@ -127,11 +127,48 @@
                 </Grid>
             </PivotItem>
 
-            <!--Сводный элемент три-->
             <PivotItem
                 x:Uid="PivotItem3"
-                Margin="19,14.5,0,0"
+                Margin="10"
                 Header="third">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Button Grid.Row="0"  Padding="0, 10, 0, 10"  VerticalAlignment="Top" x:Uid="RefreshScheduleButton" Margin="10" HorizontalAlignment="Stretch" BorderThickness="1" BorderBrush="#FF124E67" Tapped="ArchiveRefreshButtonclick">
+                        <TextBlock x:Uid="RefreshArchiveTextBlock"/>
+                    </Button>
+                    <TextBlock Grid.Row="1"  VerticalAlignment="Top" x:Uid="RefreshScheduleButton" Margin="10, 0, 10, 10" HorizontalAlignment="Stretch"/>
+                    <ListView
+                        Grid.Row="2"
+                        Name="ArchiveListView"
+                        ItemsSource="{Binding Items}"
+                        Padding="5"
+                        >
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Tag="{Binding}" Width="{Binding ElementName=ArchiveListView, Path=ActualWidth}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="27*"/>
+                                        <ColumnDefinition Width="31*"/>
+                                        <ColumnDefinition Width="6*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock TextAlignment="Left" Grid.Column="0" Padding="3" Text="{Binding Time}"/>
+                                    <TextBlock TextAlignment="Left" TextWrapping="Wrap" Grid.Column="1" Padding="3" Text="{Binding Name}"/>
+                                    <Image Grid.Column="2" HorizontalAlignment="Right" Tapped="DownloadTap" Tag="{Binding URL}" Source="Assets/download.png"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </PivotItem>
+
+            <PivotItem
+                x:Uid="PivotItem4"
+                Margin="10"
+                Header="fourth">
             </PivotItem>
         </Pivot>
     </Grid>

@@ -1,6 +1,6 @@
 ﻿using FantasyRadio.DataModel;
 using FantasyRadio.Utils;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace FantasyRadio
@@ -8,8 +8,10 @@ namespace FantasyRadio
     class ArchiveManager : INotifyPropertyChanged
     {
         public ArchiveParser Parser { get; private set; } = new ArchiveParser();
-        private List<ArchiveEntity> archiveItems = new List<ArchiveEntity>();
-        public List<ArchiveEntity> Items
+        private ObservableCollection<ArchiveEntity> archiveItems = new ObservableCollection<ArchiveEntity>();
+        public string Login { get; set; } = "NamelessOne";
+        public string Password { get; set; } = "pen3souin";
+        public ObservableCollection<ArchiveEntity> Items
         {
             get
             {
@@ -17,7 +19,14 @@ namespace FantasyRadio
             }
             set
             {
-                archiveItems = value;
+                archiveItems.Clear();
+                if (value != null)
+                {
+                    foreach (var item in value)
+                    {
+                        archiveItems.Add(item);
+                    }
+                }
                 Notify("Items");
             }
         }
