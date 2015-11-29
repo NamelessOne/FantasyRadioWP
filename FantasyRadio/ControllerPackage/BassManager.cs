@@ -26,8 +26,9 @@ namespace FantasyRadio
              * @param length Длина куска данных потока
              * @param user BASS.dll магия. ХЗ что это
              */
-            public void DOWNLOADPROC(IntPtr buffer, int length, int user)
+            public Delegate DOWNLOADPROC(IntPtr buffer, int length, IntPtr user)
             {
+                return null;
                 /*if (PlayerState.getInstance().isRecActive())
                 {
                     byte[] ba = new byte[length];

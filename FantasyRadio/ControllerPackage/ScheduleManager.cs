@@ -2,13 +2,27 @@
 using FantasyRadio.Utils;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace FantasyRadio
 {
     public class ScheduleManager : INotifyPropertyChanged
     {
-        public ScheduleParser Parser { get; private set; } = new ScheduleParser();
+        private ScheduleParser parser = new ScheduleParser();
         private ObservableCollection<KeyedList<string, ScheduleEntity>> scheduleItems = new ObservableCollection<KeyedList<string, ScheduleEntity>>();
+        private bool isParsingActive;
+        public bool IsParsingActive
+        {
+            get
+            {
+                return isParsingActive;
+            }
+            set
+            {
+                isParsingActive = value;
+                Notify("IsParsingActive");
+            }
+        }
 
         public ObservableCollection<KeyedList<string, ScheduleEntity>> Items {
             get
@@ -43,6 +57,11 @@ namespace FantasyRadio
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
+        }
+
+        public Task<ObservableCollection<KeyedList<string, ScheduleEntity>>> ParseScheduleAsync()
+        {
+            return parser.ParseScheduleAsync();
         }
     }
 }

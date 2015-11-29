@@ -10,8 +10,14 @@ namespace FantasyRadio.Utils
 {
     class ArchiveParser
     {
-        public void ParseArchieve(string login, string password)
+        public Task<List<ArchiveEntity>> ParseArchiveAsync(string login, string password) //Вместо bool - List<ArchiveEntity>
         {
+            return Task.Run(() => ParseArchive(login, password));
+        }
+
+        private List<ArchiveEntity> ParseArchive(string login, string password)
+        {
+            var result = new List<ArchiveEntity>();
             try
             {
                 var handler = new HttpClientHandler { CookieContainer = new CookieContainer(), AllowAutoRedirect = true, UseCookies = true };
@@ -92,7 +98,7 @@ namespace FantasyRadio.Utils
                                     trlist.AddRange(trElems[i].Descendants("td"));
                                     ae.Time = trlist[0].InnerText;
                                     ae.Name = trlist[1].InnerText.Replace("&nbsp;", "");
-                                    Controller.getInstance().CurrentArchiveManager.Items.Add(ae);
+                                    result.Add(ae);
                                 }
                             }
                         }
@@ -106,6 +112,7 @@ namespace FantasyRadio.Utils
             catch (Exception e)
             {
             }
+            return result;
         }
 
         public class WrongLoginOrPasswordException : Exception

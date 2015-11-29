@@ -14,8 +14,13 @@ namespace FantasyRadio.Utils
     {
         private const string URL = "https://www.googleapis.com/calendar/v3/calendars/fantasyradioru@gmail.com/events?key=AIzaSyDam413Hzm4l8GOEEg-NF8w8wdAbUsKEjM&maxResults=50&singleEvents=true&orderBy=startTime";
 
-        public void parseSchedule()
+        public Task<ObservableCollection<KeyedList<string, ScheduleEntity>>> ParseScheduleAsync() //Вместо bool - List<ArchiveEntity>
         {
+            return Task.Run(() => ParseSchedule());
+        }
+        private ObservableCollection<KeyedList<string, ScheduleEntity>> ParseSchedule()
+        {
+            var result = new ObservableCollection<KeyedList<string, ScheduleEntity>>();
             try
             {
                 using (HttpClient http = new HttpClient())
@@ -27,7 +32,6 @@ namespace FantasyRadio.Utils
                     string urlMax = "&timeMax=" + ld.AddDays(3).ToString(pattern)
                             + "00:00:00.000Z";
                     // -----------------------------------------------
-                    Controller.getInstance().CurrentScheduleManager.clearEntityes();
                     // -------------------------------------
 
                     Task<string> response = http.GetStringAsync(URL + urlMin + urlMax);
@@ -90,14 +94,14 @@ namespace FantasyRadio.Utils
                     //orderby entity.Day
                     group entity by entity.Day into entityesByDay
                     select new KeyedList<string, ScheduleEntity>(entityesByDay);
-                    int c = groupedEntityes.Count();
-                    Controller.getInstance().CurrentScheduleManager.Items = new ObservableCollection<KeyedList<string, ScheduleEntity>>(groupedEntityes); ;
+                    result = new ObservableCollection<KeyedList<string, ScheduleEntity>>(groupedEntityes);
                 }
             }
             catch (Exception e)
             {
                 string err = e.StackTrace;
             }
+            return result;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace FantasyRadio
+﻿using Windows.UI.Xaml;
+
+namespace FantasyRadio
 {
     class Controller
     {
@@ -8,6 +10,8 @@
         public BassManager CurrentBassManager { get; } = new BassManager();
         public ScheduleManager CurrentScheduleManager { get; } = new ScheduleManager();
         public ArchiveManager CurrentArchiveManager { get; } = new ArchiveManager();
+        public SavedManager CurrentSavedManager { get; } = new SavedManager();
+        public ResourceDictionary ResourceDict { get; set; }
 
         private Controller() {}
 

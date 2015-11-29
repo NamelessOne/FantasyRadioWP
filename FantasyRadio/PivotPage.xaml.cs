@@ -1,11 +1,16 @@
 ﻿using FantasyRadio.Common;
+using FantasyRadio.CustomControls;
 using FantasyRadio.Data;
 using FantasyRadio.DataModel;
 using System;
 using System.Globalization;
+using System.IO;
+using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Resources;
+using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -35,6 +40,7 @@ namespace FantasyRadio
             timer.Tick += new EventHandler<object>(timerAction);
             //timer.Tick += timerAction(this, null);
             //--------------------------------------BINDINGS-----------------------------
+            Controller.getInstance().ResourceDict = Resources;
             RadioTitle.DataContext = Controller.getInstance().CurrentRadioManager;
             PlayPauseButton.DataContext = Controller.getInstance().CurrentRadioManager;
             RecButton.DataContext = Controller.getInstance().CurrentRadioManager;
@@ -47,6 +53,9 @@ namespace FantasyRadio
             ScheduleCollection.Source = Controller.getInstance().CurrentScheduleManager.Items;
             ArchiveListView.DataContext = Controller.getInstance().CurrentArchiveManager;
             ArchieveCollection.Source = Controller.getInstance().CurrentArchiveManager.Items;
+            ArchieveProgressRing.DataContext = Controller.getInstance().CurrentArchiveManager;
+            ScheduleProgressRing.DataContext = Controller.getInstance().CurrentScheduleManager;
+            SavedListView.DataContext = Controller.getInstance().CurrentSavedManager;
             //--------------------------------------BINDINGS-----------------------------
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
@@ -205,7 +214,7 @@ namespace FantasyRadio
 
         private void timerAction(object sender, object e)
         {
-                  
+
             // monitor prebuffering progress
             int progress = (int)Bass.BASS.BASS_StreamGetFilePosition(Controller.getInstance().CurrentBassManager.Chan, Bass.BASS.BASS_FILEPOS_BUFFER);
             if (progress == -1)
@@ -270,7 +279,7 @@ namespace FantasyRadio
                 Controller.getInstance().CurrentRadioManager.CurrentTitle = "";
             }
         };
-        
+
         private void DoMeta()
         {
             string meta = Marshal.PtrToStringAnsi(Bass.BASS.BASS_ChannelGetTags(Controller.getInstance().CurrentBassManager.Chan,
@@ -319,7 +328,7 @@ namespace FantasyRadio
             else
             {
                 Controller.getInstance().CurrentRadioManager.CurrentTitle = "";
-            }           
+            }
         }
 
         private object lockObject = new object();
@@ -338,7 +347,7 @@ namespace FantasyRadio
                             | Bass.BASS.BASS_STREAM_STATUS | Bass.BASS.BASS_STREAM_AUTOFREE,
                     Controller.getInstance().BassManager.StatusProc, r);*/
 
-            int c = Bass.BASS.BASS_StreamCreateURL(URL, 0, Bass.BASS.BASS_STREAM_BLOCK | Bass.BASS.BASS_STREAM_STATUS | Bass.BASS.BASS_STREAM_AUTOFREE, null /*Controller.getInstance().BassManager.StatusProc*/, r); // open URL
+            int c = Bass.BASS.BASS_StreamCreateURL(URL, 0, Bass.BASS.BASS_STREAM_BLOCK | Bass.BASS.BASS_STREAM_STATUS | Bass.BASS.BASS_STREAM_AUTOFREE, null/*Controller.getInstance().CurrentBassManager.StatusProc*/, r); // open URL
             //--------------------------------------------OLOLOLO--------------------------------------------
             //Bass.BASS.BASS_ChannelPlay(c, false);
             //Bass.BASS.BASS_StreamFree(c);
@@ -389,9 +398,21 @@ namespace FantasyRadio
             }
         }
 
-        private void ScheduleRefreshButtonclick(object sender, TappedRoutedEventArgs e)
+        private async void ScheduleRefreshButtonclick(object sender, TappedRoutedEventArgs e)
         {
-            Controller.getInstance().CurrentScheduleManager.Parser.parseSchedule();
+            if (!Controller.getInstance().CurrentScheduleManager.IsParsingActive)
+            {
+                //TODO потенциально непотокобезопасно
+                //TODO interlockedExchange
+                Controller.getInstance().CurrentScheduleManager.IsParsingActive = true;
+                Controller.getInstance().CurrentScheduleManager.Items.Clear();
+                var items = await Controller.getInstance().CurrentScheduleManager.ParseScheduleAsync();
+                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                {
+                    Controller.getInstance().CurrentScheduleManager.Items = items;
+                });
+                Controller.getInstance().CurrentScheduleManager.IsParsingActive = false;
+            }
         }
 
         private void ScheduleItemTapped(object sender, TappedRoutedEventArgs e)
@@ -401,14 +422,72 @@ namespace FantasyRadio
             Frame.Navigate(typeof(ScheduleItemPage), tag);
         }
 
-        private void ArchiveRefreshButtonclick(object sender, TappedRoutedEventArgs e)
+        private async void ArchiveRefreshButtonclick(object sender, TappedRoutedEventArgs e)
         {
-            Controller.getInstance().CurrentArchiveManager.Parser.ParseArchieve(Controller.getInstance().CurrentArchiveManager.Login, Controller.getInstance().CurrentArchiveManager.Password);
+            if (!Controller.getInstance().CurrentArchiveManager.IsParsingActive)
+            {
+                //TODO потенциально непотокобезопасно
+                //TODO interlockedExchange
+                Controller.getInstance().CurrentArchiveManager.IsParsingActive = true;
+                Controller.getInstance().CurrentArchiveManager.Items.Clear();
+                var items = await Controller.getInstance().CurrentArchiveManager.ParseArchiveAsync();
+                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                {
+                    foreach (var item in items)
+                    {
+                        Controller.getInstance().CurrentArchiveManager.Items.Add(item);
+                    }
+                });
+                Controller.getInstance().CurrentArchiveManager.IsParsingActive = false;
+            }
         }
 
-        private void DownloadTap(object sender, TappedRoutedEventArgs e)
+        private async void DownloadTap(object sender, TappedRoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            string url = (sender as Button).Tag.ToString();
+            if (!Controller.getInstance().CurrentArchiveManager.RunningDownloads.Contains(url))
+            {
+                //TODO сделать, чтобы одновременно скачивались только разнве файлы
+                Controller.getInstance().CurrentArchiveManager.RunningDownloads.Add(url);
+                bool b = await Controller.getInstance().CurrentArchiveManager.saveMp3Async(url);
+                if (b)
+                {
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        Controller.getInstance().CurrentSavedManager.ReloadItems();
+                    });
+                }
+                Controller.getInstance().CurrentArchiveManager.RunningDownloads.Remove(url);
+            }
         }
+
+        /*private const string FOLDER_PREFIX = "";
+        private const int PADDING_FACTOR = 3;
+        private const char SPACE = ' ';
+        private static StringBuilder folderContents = new StringBuilder();
+
+        // Continue recursive enumeration of files and folders.
+        private static async Task ListFilesInFolder(StorageFolder folder, int indentationLevel)
+        {
+            string indentationPadding = String.Empty.PadRight(indentationLevel * PADDING_FACTOR, SPACE);
+
+            // Get the subfolders in the current folder.
+            var foldersInFolder = await folder.GetFoldersAsync();
+            // Increase the indentation level of the output.
+            int childIndentationLevel = indentationLevel + 1;
+            // For each subfolder, call this method again recursively.
+            foreach (StorageFolder currentChildFolder in foldersInFolder)
+            {
+                folderContents.AppendLine(indentationPadding + FOLDER_PREFIX + currentChildFolder.Name);
+                await ListFilesInFolder(currentChildFolder, childIndentationLevel);
+            }
+
+            // Get the files in the current folder.
+            var filesInFolder = await folder.GetFilesAsync();
+            foreach (StorageFile currentFile in filesInFolder)
+            {
+                folderContents.AppendLine(indentationPadding + currentFile.Name);
+            }
+        }*/
     }
 }

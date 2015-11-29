@@ -27,6 +27,19 @@ namespace FantasyRadio
 
         private ImageSource playImage;
         private ImageSource pauseImage;
+        private ImageSource pressedPlayImage;
+        private ImageSource pressedPauseImage;
+
+        public ImageSource PressedPlayPauseImage
+        {
+            get
+            {
+                if (CurrentPlayStatus)
+                    return pressedPauseImage;
+                else
+                    return pressedPlayImage;
+            }
+        }
 
         public ImageSource PlayPauseImage
         {
@@ -50,7 +63,8 @@ namespace FantasyRadio
             {
                 currentPlayStatus = value;
                 Notify("PlayPauseImage");
-                if(value==false)
+                Notify("PressedPlayPauseImage");
+                if (value==false)
                 {
                     CurrentTitle = "";
                     if (CurrentRecStatus)
@@ -191,6 +205,8 @@ namespace FantasyRadio
         {
             playImage = new BitmapImage(new Uri("ms-appx:/Assets/play.png", UriKind.Absolute));
             pauseImage = new BitmapImage(new Uri("ms-appx:/Assets/pause.png", UriKind.Absolute));
+            pressedPlayImage = new BitmapImage(new Uri("ms-appx:/Assets/play_pressed.png", UriKind.Absolute));
+            pressedPauseImage = new BitmapImage(new Uri("ms-appx:/Assets/pause_pressed.png", UriKind.Absolute));
             recImage = new BitmapImage(new Uri("ms-appx:/Assets/rec.png", UriKind.Absolute));
             recActiveImage = new BitmapImage(new Uri("ms-appx:/Assets/rec_active.png", UriKind.Absolute));
         }

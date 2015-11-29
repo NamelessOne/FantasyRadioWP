@@ -336,7 +336,7 @@ namespace FantasyRadio.Bass
 
         public interface DOWNLOADPROC
         {
-            void DOWNLOADPROC(IntPtr buffer, int length, int user);
+            Delegate DOWNLOADPROC(IntPtr buffer, int length, IntPtr user);
             /* Internet stream download callback function.
             buffer : Buffer containing the downloaded data... NULL=end of download
             length : Number of bytes in the buffer
