@@ -1,13 +1,8 @@
 ﻿using FantasyRadio.Common;
-using FantasyRadio.CustomControls;
 using FantasyRadio.Data;
 using FantasyRadio.DataModel;
 using System;
-using System.Globalization;
-using System.IO;
-using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Resources;
 using Windows.Storage;
@@ -56,6 +51,7 @@ namespace FantasyRadio
             ArchieveProgressRing.DataContext = Controller.getInstance().CurrentArchiveManager;
             ScheduleProgressRing.DataContext = Controller.getInstance().CurrentScheduleManager;
             SavedListView.DataContext = Controller.getInstance().CurrentSavedManager;
+            Controller.getInstance().CurrentSavedManager.ReloadItems();
             //--------------------------------------BINDINGS-----------------------------
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
@@ -110,30 +106,6 @@ namespace FantasyRadio
         private void NavigationHelper_SaveState(object sender, SaveStateEventArgs e)
         {
             // TODO: Сохраните здесь уникальное состояние страницы.
-        }
-
-        /// <summary>
-        /// Добавляет элемент в список при нажатии кнопки на панели приложения.
-        /// </summary>
-        private void AddAppBarButton_Click(object sender, RoutedEventArgs e)
-        {
-            string groupName = this.pivot.SelectedIndex == 0 ? FirstGroupName : SecondGroupName;
-            var group = this.DefaultViewModel[groupName] as SampleDataGroup;
-            var nextItemId = group.Items.Count + 1;
-            var newItem = new SampleDataItem(
-                string.Format(CultureInfo.InvariantCulture, "Group-{0}-Item-{1}", this.pivot.SelectedIndex + 1, nextItemId),
-                string.Format(CultureInfo.CurrentCulture, this.resourceLoader.GetString("NewItemTitle"), nextItemId),
-                string.Empty,
-                string.Empty,
-                this.resourceLoader.GetString("NewItemDescription"),
-                string.Empty);
-
-            group.Items.Add(newItem);
-
-            // Прокручиваем, чтобы новый элемент оказался видимым.
-            var container = this.pivot.ContainerFromIndex(this.pivot.SelectedIndex) as ContentControl;
-            var listView = container.ContentTemplateRoot as ListView;
-            listView.ScrollIntoView(newItem, ScrollIntoViewAlignment.Leading);
         }
 
         /// <summary>
@@ -461,33 +433,24 @@ namespace FantasyRadio
             }
         }
 
-        /*private const string FOLDER_PREFIX = "";
-        private const int PADDING_FACTOR = 3;
-        private const char SPACE = ' ';
-        private static StringBuilder folderContents = new StringBuilder();
-
-        // Continue recursive enumeration of files and folders.
-        private static async Task ListFilesInFolder(StorageFolder folder, int indentationLevel)
+        private void DeleteTap(object sender, TappedRoutedEventArgs e)
         {
-            string indentationPadding = String.Empty.PadRight(indentationLevel * PADDING_FACTOR, SPACE);
-
-            // Get the subfolders in the current folder.
-            var foldersInFolder = await folder.GetFoldersAsync();
-            // Increase the indentation level of the output.
-            int childIndentationLevel = indentationLevel + 1;
-            // For each subfolder, call this method again recursively.
-            foreach (StorageFolder currentChildFolder in foldersInFolder)
-            {
-                folderContents.AppendLine(indentationPadding + FOLDER_PREFIX + currentChildFolder.Name);
-                await ListFilesInFolder(currentChildFolder, childIndentationLevel);
+            try {
+                var fileName = (sender as Control).Tag.ToString();
+                var storageFolder = ApplicationData.Current.LocalFolder; //мб RoamingFolder?   
+                var createStorageFolderTask = storageFolder.CreateFolderAsync("saved", CreationCollisionOption.OpenIfExists);
+                createStorageFolderTask.AsTask().Wait();
+                var folder = createStorageFolderTask.GetResults();
+                var getFileTask = folder.GetFileAsync(fileName).AsTask();
+                getFileTask.Wait();
+                var deleteTask = getFileTask.Result.DeleteAsync().AsTask();
+                deleteTask.Wait();
+                Controller.getInstance().CurrentSavedManager.ReloadItems();
             }
-
-            // Get the files in the current folder.
-            var filesInFolder = await folder.GetFilesAsync();
-            foreach (StorageFile currentFile in filesInFolder)
+            catch (Exception ex)
             {
-                folderContents.AppendLine(indentationPadding + currentFile.Name);
+                var message = ex.ToString();
             }
-        }*/
+        }
     }
 }

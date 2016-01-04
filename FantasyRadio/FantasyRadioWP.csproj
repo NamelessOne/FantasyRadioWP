@@ -135,6 +135,8 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\delete.png" />
+    <Content Include="Assets\delete_pressed.png" />
     <Content Include="Assets\download.png" />
     <Content Include="Assets\download_pressed.png" />
     <Content Include="Assets\Logo.scale-240.png" />

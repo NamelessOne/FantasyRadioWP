@@ -1,10 +1,8 @@
 ﻿using FantasyRadio.DataModel;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
-using System.Threading.Tasks;
 using Windows.Storage;
 
 namespace FantasyRadio
@@ -52,31 +50,40 @@ namespace FantasyRadio
         private const string FOLDER_PREFIX = "";
         private const int PADDING_FACTOR = 3; //TODO вроде и нафиг не надо
         private const char SPACE = ' ';
-        private static StringBuilder folderContents = new StringBuilder();
+        //private static StringBuilder folderContents = new StringBuilder();
 
         // Continue recursive enumeration of files and folders.
         private ObservableCollection<SavedAudioEntity> ListFilesInFolder(StorageFolder folder, int indentationLevel)
         {
-            return new ObservableCollection<SavedAudioEntity>();
-            /*string indentationPadding = String.Empty.PadRight(indentationLevel * PADDING_FACTOR, SPACE);
+            var result = new ObservableCollection<SavedAudioEntity>();
+            //return new ObservableCollection<SavedAudioEntity>();
+            //string indentationPadding = String.Empty.PadRight(indentationLevel * PADDING_FACTOR, SPACE);
 
             // Get the subfolders in the current folder.
-            var foldersInFolder = await folder.GetFoldersAsync();
+            /*var getFoldersTask = folder.GetFoldersAsync().AsTask();
+            getFoldersTask.Wait();
+            var foldersInFolder = getFoldersTask.Result;
             // Increase the indentation level of the output.
             int childIndentationLevel = indentationLevel + 1;
             // For each subfolder, call this method again recursively.
             foreach (StorageFolder currentChildFolder in foldersInFolder)
             {
                 folderContents.AppendLine(indentationPadding + FOLDER_PREFIX + currentChildFolder.Name);
-                await ListFilesInFolder(currentChildFolder, childIndentationLevel);
-            }
+                ListFilesInFolder(currentChildFolder, childIndentationLevel);
+            }*/
 
             // Get the files in the current folder.
-            var filesInFolder = await folder.GetFilesAsync();
+            var getFilesTask = folder.GetFilesAsync().AsTask();
+            getFilesTask.Wait();
+            var filesInFolder = getFilesTask.Result;
             foreach (StorageFile currentFile in filesInFolder)
             {
-                folderContents.AppendLine(indentationPadding + currentFile.Name);
-            }*/
+                var savedEntity = new SavedAudioEntity(currentFile.Name, currentFile.Path, currentFile.Path, currentFile.Name);
+                result.Add(savedEntity);
+                //folderContents.AppendLine(currentFile.Name);
+            }
+
+            return result;
         }
     }
 }

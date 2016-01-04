@@ -67,7 +67,7 @@ namespace FantasyRadio
 
         public Task<bool> saveMp3Async(string url)
         {
-            return Task<bool>.Run(() => saveMp3(url));
+            return Task.Run(() => saveMp3(url));
         }
 
         private bool saveMp3(string url)
