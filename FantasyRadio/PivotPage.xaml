@@ -33,7 +33,6 @@
                 Margin="10"
                 Header="first"
                 DataContext="{Binding FirstGroup}"
-                d:DataContext="{Binding Groups[0], Source={d:DesignData Source=/DataModel/SampleData.json, Type=data:SampleDataSource}}"
                 CommonNavigationTransitionInfo.IsStaggerElement="True">
                 <StackPanel Orientation="Vertical">
                     <Grid VerticalAlignment="Center">
@@ -174,6 +173,7 @@
             <PivotItem
                 x:Uid="PivotItem4"
                 Margin="10"
+                Name="SavedPivot"
                 Header="fourth">
                 <ListView
                         Grid.Row="2"
@@ -181,23 +181,39 @@
                         ItemsSource="{Binding Items}"
                         Padding="0, 3, 0, 3"
                         >
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Tag="{Binding}" Width="{Binding ElementName=SavedListView, Path=ActualWidth}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Vertical">
+                                <Grid Tag="{Binding}" Width="{Binding ElementName=SavedPivot, Path=ActualWidth}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="27*"/>
                                         <ColumnDefinition Width="3*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock VerticalAlignment="Center" TextAlignment="Left" Grid.Column="0" Padding="3" Text="{Binding Title}"/>
-                                <Button VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" Tapped="DeleteTap" Tag="{Binding Title}" BorderBrush="Transparent">
-                                    <Button.Background>
-                                        <ImageBrush ImageSource="Assets/delete.png" Stretch="Uniform"/>
-                                    </Button.Background>
-                                </Button>
-                            </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                                    <Button VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" Tapped="DeleteTap" Tag="{Binding Title}" BorderBrush="Transparent">
+                                        <Button.Background>
+                                            <ImageBrush ImageSource="Assets/delete.png" Stretch="Uniform"/>
+                                        </Button.Background>
+                                    </Button>
+                                </Grid>
+                                <Grid Tag="{Binding}" Width="{Binding ElementName=SavedPivot, Path=ActualWidth}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="9*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="0" Grid.Column="0" Tapped="PlaySavedTap" Tag="{Binding Title}" BorderBrush="Transparent">
+                                        <Button.Background>
+                                            <ImageBrush ImageSource="Assets/play.png" Stretch="Uniform"/>
+                                        </Button.Background>
+                                    </Button>
+                                    <Slider Tag="{Binding Title}" Name="SavedTimelineSlider" Grid.Column="1">
+                                        
+                                    </Slider>
+                                </Grid>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
             </PivotItem>
         </Pivot>
     </Grid>
@@ -205,8 +221,8 @@
     <Page.BottomAppBar>
         <CommandBar>
             <CommandBar.SecondaryCommands>
-                <AppBarButton x:Uid="SecondaryButton1" x:Name="SecondaryButton1" Label="secondary command 1" />
-                <AppBarButton x:Uid="SecondaryButton2" x:Name="SecondaryButton2" Label="secondary command 2" />
+                <AppBarButton x:Uid="SettingsButton" x:Name="SettingsButton" Label="Settings" Click="SettingsButtonClick"/>
+                <AppBarButton x:Uid="AboutButton" x:Name="AboutButton" Label="About" Click="AboutButtonClick"/>
             </CommandBar.SecondaryCommands>
         </CommandBar>
     </Page.BottomAppBar>

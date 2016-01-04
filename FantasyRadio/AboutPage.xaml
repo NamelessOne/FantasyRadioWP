@@ -1,0 +1,19 @@
+﻿<Page
+    x:Class="FantasyRadio.AboutPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:FantasyRadio"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <StackPanel VerticalAlignment="Center" >
+        <TextBlock TextAlignment="Center"  Style="{StaticResource SubheaderTextBlockStyle}" Text="О программе"/>
+        <TextBlock Margin="10, 10, 10, 0" TextAlignment="Justify" Style="{StaticResource BaseTextBlockStyle}" TextWrapping="Wrap" Text="Первое в России радио, которое создано для любителей научной и антинаучной, боевой и космической фантастики, фэнтези, ужасов, детективов.
+Аудиокниги и радиоспектакли, рассказы в исполнении профессиональных актёров и чтецов хорошо знакомых произведений известных авторов и новые романы начинающих писателей. "/>
+        <TextBlock Margin="10, 0, 10, 10" Style="{StaticResource BaseTextBlockStyle}">
+            <Hyperlink NavigateUri="http://fantasyradio.ru" Foreground="Blue">fantasyradio.ru</Hyperlink>
+        </TextBlock>
+    </StackPanel>
+</Page>

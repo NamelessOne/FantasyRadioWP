@@ -166,10 +166,10 @@
     <value>Сохранённое</value>
   </data>
   <data name="SecondaryButton1.Label" xml:space="preserve">
-    <value>второстепенная команда 1</value>
+    <value>Настройки</value>
   </data>
   <data name="SecondaryButton2.Label" xml:space="preserve">
-    <value>второстепенная команда 2</value>
+    <value>О программе</value>
   </data>
   <data name="stream_url_AAC112" xml:space="preserve">
     <value>http://fantasyradioru.no-ip.biz:8000</value>

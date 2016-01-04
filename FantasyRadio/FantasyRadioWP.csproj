@@ -80,6 +80,10 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <Page Include="AboutPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ImageButton.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -94,6 +98,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AboutPage.xaml.cs">
+      <DependentUpon>AboutPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
@@ -118,7 +125,6 @@
     <Compile Include="Utils\ScheduleParser.cs" />
     <Compile Include="DataModel\ArchiveEntity.cs" />
     <Compile Include="DataModel\ScheduleEntity.cs" />
-    <Compile Include="DataModel\SampleDataSource.cs" />
     <Compile Include="ScheduleItemPage.xaml.cs">
       <DependentUpon>ScheduleItemPage.xaml</DependentUpon>
     </Compile>
@@ -165,7 +171,6 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DataModel\SampleData.json" />
     <PRIResource Include="Strings\ru-RU\Resources.resw">
       <SubType>Designer</SubType>
     </PRIResource>

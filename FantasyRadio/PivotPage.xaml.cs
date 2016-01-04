@@ -1,5 +1,4 @@
 ﻿using FantasyRadio.Common;
-using FantasyRadio.Data;
 using FantasyRadio.DataModel;
 using System;
 using System.Runtime.InteropServices;
@@ -91,8 +90,6 @@ namespace FantasyRadio
         private async void NavigationHelper_LoadState(object sender, LoadStateEventArgs e)
         {
             // TODO: Создание соответствующей модели данных для области проблемы, чтобы заменить пример данных
-            var sampleDataGroup = await SampleDataSource.GetGroupAsync("Group-1");
-            this.DefaultViewModel[FirstGroupName] = sampleDataGroup;
         }
 
         /// <summary>
@@ -106,29 +103,6 @@ namespace FantasyRadio
         private void NavigationHelper_SaveState(object sender, SaveStateEventArgs e)
         {
             // TODO: Сохраните здесь уникальное состояние страницы.
-        }
-
-        /// <summary>
-        /// Вызывается при нажатии элемента внутри раздела.
-        /// </summary>
-        private void ItemView_ItemClick(object sender, ItemClickEventArgs e)
-        {
-            // Переход к соответствующей странице назначения и настройка новой страницы
-            // путем передачи необходимой информации в виде параметра навигации
-            var itemId = ((SampleDataItem)e.ClickedItem).UniqueId;
-            if (!Frame.Navigate(typeof(ScheduleItemPage), itemId))
-            {
-                throw new Exception(this.resourceLoader.GetString("NavigationFailedExceptionMessage"));
-            }
-        }
-
-        /// <summary>
-        /// Загружает содержимое для второго элемента Pivot, когда он становится видимым в результате прокрутки.
-        /// </summary>
-        private async void SecondPivot_Loaded(object sender, RoutedEventArgs e)
-        {
-            var sampleDataGroup = await SampleDataSource.GetGroupAsync("Group-2");
-            this.DefaultViewModel[SecondGroupName] = sampleDataGroup;
         }
 
         #region Регистрация NavigationHelper
@@ -451,6 +425,21 @@ namespace FantasyRadio
             {
                 var message = ex.ToString();
             }
+        }
+
+        private void PlaySavedTap(object sender, TappedRoutedEventArgs e)
+        {
+
+        }
+
+        private void SettingsButtonClick(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void AboutButtonClick(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(AboutPage));
         }
     }
 }
