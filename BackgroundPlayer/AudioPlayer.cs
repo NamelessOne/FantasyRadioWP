@@ -1,4 +1,6 @@
-﻿using System;
+﻿using FantasyRadio;
+using FantasyRadioPlaylistManager;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using Windows.ApplicationModel.Background;
@@ -21,7 +23,7 @@ namespace BackgroundPlayer
     public sealed class AudioPlayer : IBackgroundTask
     {
         private SystemMediaTransportControls systemmediatransportcontrol;
-        private MyPlaylistManager playlistManager;
+        private FantasyRadioPlayListManager playlistManager;
         private BackgroundTaskDeferral deferral; // Used to keep task alive
         private ForegroundAppStatus foregroundAppState = ForegroundAppStatus.Unknown;
         private AutoResetEvent BackgroundTaskStarted = new AutoResetEvent(false);
@@ -30,13 +32,13 @@ namespace BackgroundPlayer
         /// <summary>
         /// Property to hold current playlist
         /// </summary>
-        private MyPlaylist Playlist
+        private FRPlaylist Playlist
         {
             get
             {
                 if (null == playlistManager)
                 {
-                    playlistManager = new MyPlaylistManager();
+                    playlistManager = new FantasyRadioPlayListManager();
                 }
                 return playlistManager.Current;
             }
@@ -255,7 +257,7 @@ namespace BackgroundPlayer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        void playList_TrackChanged(MyPlaylist sender, object args)
+        void playList_TrackChanged(FRPlaylist sender, object args)
         {
             UpdateUVCOnNewTrack();
             ApplicationSettingsHelper.SaveSettingsValue(Constants.CurrentTrack, sender.CurrentTrackName);

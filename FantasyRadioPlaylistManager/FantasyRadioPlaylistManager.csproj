@@ -6,11 +6,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{3A9EE71F-9982-4F7F-89D5-73751C45B5E0}</ProjectGuid>
-    <OutputType>winmdobj</OutputType>
+    <ProjectGuid>{F8100737-C176-408E-B8AF-80AC05E879F1}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BackgroundPlayer</RootNamespace>
-    <AssemblyName>BackgroundPlayer</AssemblyName>
+    <RootNamespace>FantasyRadioPlaylistManager</RootNamespace>
+    <AssemblyName>FantasyRadioPlaylistManager</AssemblyName>
     <DefaultLanguage>ru-RU</DefaultLanguage>
     <TargetPlatformVersion>8.1</TargetPlatformVersion>
     <MinimumVisualStudioVersion>12</MinimumVisualStudioVersion>
@@ -80,19 +80,9 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
-    <ProjectReference Include="..\FantasyRadioPlaylistManager\FantasyRadioPlaylistManager.csproj">
-      <Project>{f8100737-c176-408e-b8af-80ac05e879f1}</Project>
-      <Name>FantasyRadioPlaylistManager</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\FantasyRadio\ApplicationSettingsHelper.cs">
-      <Link>ApplicationSettingsHelper.cs</Link>
-    </Compile>
-    <Compile Include="..\FantasyRadio\Constants.cs">
-      <Link>Constants.cs</Link>
-    </Compile>
-    <Compile Include="AudioPlayer.cs" />
+    <Compile Include="FantasyRadioPlayListManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">
