@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Storage.Streams;
 
 namespace FantasyRadio.Bass
 {
@@ -312,14 +314,26 @@ namespace FantasyRadio.Bass
         public const int STREAMFILE_BUFFER = 1;
         public const int STREAMFILE_BUFFERPUSH = 2;
 
-        public interface BASS_FILEPROCS
+        [StructLayout(LayoutKind.Sequential)]
+        public sealed class BASS_FILEPROCS
         {
-            // User file stream callback functions
-            void FILECLOSEPROC(Object user);
-            long FILELENPROC(Object user);
-            int FILEREADPROC(MemoryStream buffer, int length, Object user);
-            bool FILESEEKPROC(long offset, Object user);
+            public FILECLOSEPROC close;
+            public FILELENPROC length;
+            public FILEREADPROC read;
+            public FILESEEKPROC seek;
+            public BASS_FILEPROCS(FILECLOSEPROC closeCallback, FILELENPROC lengthCallback, FILEREADPROC readCallback, FILESEEKPROC seekCallback)
+            {
+                close = closeCallback;
+                length = lengthCallback;
+                read = readCallback;
+                seek = seekCallback;
+            }
         }
+
+        public delegate void FILECLOSEPROC(IntPtr user);
+        public delegate long FILELENPROC(IntPtr user);
+        public delegate int FILEREADPROC(IntPtr buffer, int length, IntPtr user);
+        public delegate bool FILESEEKPROC(long offset, IntPtr user);
 
         // BASS_StreamPutFileData options
         public const int BASS_FILEDATA_END = 0;  // end & close the file
@@ -334,14 +348,11 @@ namespace FantasyRadio.Bass
         public const int BASS_FILEPOS_BUFFER = 5;
         public const int BASS_FILEPOS_SOCKET = 6;
 
-        public interface DOWNLOADPROC
-        {
-            Delegate DOWNLOADPROC(IntPtr buffer, int length, IntPtr user);
-            /* Internet stream download callback function.
-            buffer : Buffer containing the downloaded data... NULL=end of download
-            length : Number of bytes in the buffer
-            user   : The 'user' parameter value given when calling BASS_StreamCreateURL */
-        }
+        public delegate void DOWNLOADPROC(IntPtr buffer, int length, IntPtr user);
+        /* Internet stream download callback function.
+        buffer : Buffer containing the downloaded data... NULL=end of download
+        length : Number of bytes in the buffer
+        user   : The 'user' parameter value given when calling BASS_StreamCreateURL */
 
         // BASS_ChannelSetSync types
         public const int BASS_SYNC_POS = 0;
@@ -658,15 +669,15 @@ namespace FantasyRadio.Bass
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_StreamCreate(int freq, int chans, int flags, int proc, Object user);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern int BASS_StreamCreateFile(string file, long offset, long length, int flags);
+        public static extern int BASS_StreamCreateFile(bool mem, string file, long offset, long length, uint flags);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern int BASS_StreamCreateFile(MemoryStream file, long offset, long length, int flags);
+        public static extern int BASS_StreamCreateFile(bool mem, IntPtr file, long offset, long length, uint flags);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_StreamCreateFile(Asset asset, long offset, long length, int flags);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_StreamCreateURL(string url, int offset, int flags, DOWNLOADPROC proc, int user);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern int BASS_StreamCreateFileUser(int system, int flags, BASS_FILEPROCS procs, Object user);
+        public static extern int BASS_StreamCreateFileUser(int system, int flags, BASS_FILEPROCS procs, IntPtr user);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern bool BASS_StreamFree(int handle);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
@@ -783,7 +794,7 @@ namespace FantasyRadio.Bass
             public static int MAKELONG(int a, int b) { return (a & 0xffff) | (b << 16); }
         }
    }
-    /*public class BASS_AAC
+    public class BASS_AAC
     {
         // Additional BASS_SetConfig options
         public const int BASS_CONFIG_MP4_VIDEO = 0x10700; // play the audio from MP4 videos
@@ -802,12 +813,12 @@ namespace FantasyRadio.Bass
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_AAC_StreamCreateURL(string url, int offset, int flags, BASS.DOWNLOADPROC proc, object user);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
-        public static extern int BASS_AAC_StreamCreateFileUser(int system, int flags, BASS.BASS_FILEPROCS procs, object user);
+        public static extern int BASS_AAC_StreamCreateFile(bool mem, IntPtr file, long offset, long length, uint flags);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_MP4_StreamCreateFile(string file, long offset, long length, int flags);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_MP4_StreamCreateFile(MemoryStream file, long offset, long length, int flags);
         [System.Runtime.InteropServices.DllImport("bass.dll", SetLastError = true)]
         public static extern int BASS_MP4_StreamCreateFileUser(int system, int flags, BASS.BASS_FILEPROCS procs, object user);
-    }*/
+    }
 }

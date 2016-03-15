@@ -123,7 +123,7 @@ namespace FantasyRadio
 
             if(!Bass.BASS.BASS_Init(-1, 44100, 0/*, IntPtr.Zero, IntPtr.Zero*/))
             {
-                throw new Exception("fail init");
+                //throw new Exception("fail init");
             }
             Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PLAYLIST, 1); // enable playlist processing
             Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PREBUF, 0); // minimize automatic pre-buffering, so we can do it (and display it) instead

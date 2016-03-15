@@ -85,7 +85,7 @@ namespace FantasyRadio
                     using (var data = response.Result)
                     {
                         var storageFolder = ApplicationData.Current.LocalFolder; //мб RoamingFolder?   
-                        var createStorageFolderTask = storageFolder.CreateFolderAsync("saved", CreationCollisionOption.OpenIfExists);
+                        var createStorageFolderTask = storageFolder.CreateFolderAsync(SavedManager.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
                         createStorageFolderTask.AsTask().Wait();
                         var mp3sFolder = createStorageFolderTask.GetResults();
                         var createFileTask = mp3sFolder.CreateFileAsync(filename, CreationCollisionOption.ReplaceExisting);

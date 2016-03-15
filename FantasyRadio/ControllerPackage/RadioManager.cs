@@ -70,6 +70,10 @@ namespace FantasyRadio
                     if (CurrentRecStatus)
                         CurrentRecStatus = false;
                 }
+                else
+                {
+                    Controller.getInstance().CurrentSavedManager.CurrentPlayStatus = SavedManager.PlayStatus.Stop;
+                }
             }
         }
 
@@ -98,6 +102,10 @@ namespace FantasyRadio
             {
                 currentRecStatus = value;
                 Notify("RecImage");
+                if (!value)
+                {
+                    Controller.getInstance().CurrentSavedManager.ReloadItems();
+                }               
             }
         }
 
