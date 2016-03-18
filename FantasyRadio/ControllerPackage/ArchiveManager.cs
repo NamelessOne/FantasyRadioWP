@@ -15,8 +15,8 @@ namespace FantasyRadio
     {
         private ArchiveParser parser = new ArchiveParser();
         private ObservableCollection<ArchiveEntity> archiveItems = new ObservableCollection<ArchiveEntity>();
-        public string Login { get; set; } = "NamelessOne";
-        public string Password { get; set; } = "pen3souin";
+        public string Login { get; set; }
+        public string Password { get; set; }
         private bool isParsingActive;
         public bool IsParsingActive
         {

@@ -7,7 +7,6 @@ namespace FantasyRadio
         private static Controller instance;
         private readonly static object syncLock = new object();
         public RadioManager CurrentRadioManager { get; } = new RadioManager();
-        public BassManager CurrentBassManager { get; } = new BassManager();
         public ScheduleManager CurrentScheduleManager { get; } = new ScheduleManager();
         public ArchiveManager CurrentArchiveManager { get; } = new ArchiveManager();
         public SavedManager CurrentSavedManager { get; } = new SavedManager();
@@ -34,8 +33,7 @@ namespace FantasyRadio
         {
             get
             {
-                //return CurrentSavedManager.CurrentPlayStatus == SavedManager.PlayStatus.Play || CurrentRadioManager.CurrentPlayStatus;
-                return Bass.BASS.BASS_ChannelIsActive(CurrentBassManager.Chan) == Bass.BASS.BASS_ACTIVE_PLAYING | Bass.BASS.BASS_ChannelIsActive(CurrentBassManager.Chan) == Bass.BASS.BASS_ACTIVE_STALLED;
+                return CurrentSavedManager.CurrentPlayStatus == SavedManager.PlayStatus.Play || CurrentRadioManager.CurrentPlayStatus;
             }
         }
     }

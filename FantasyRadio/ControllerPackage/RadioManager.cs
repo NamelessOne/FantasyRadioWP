@@ -67,8 +67,6 @@ namespace FantasyRadio
                 if (value==false)
                 {
                     CurrentTitle = "";
-                    if (CurrentRecStatus)
-                        CurrentRecStatus = false;
                 }
                 else
                 {
@@ -77,51 +75,10 @@ namespace FantasyRadio
             }
         }
 
-        private ImageSource recImage;
-        private ImageSource recActiveImage;
-
-        public ImageSource RecImage
-        {
-            get
-            {
-                if (CurrentRecStatus)
-                    return recActiveImage;
-                else
-                    return recImage;
-            }
-        }
-
-        private bool currentRecStatus;
-        public bool CurrentRecStatus
-        {
-            get
-            {
-                return currentRecStatus;
-            }
-            set
-            {
-                currentRecStatus = value;
-                Notify("RecImage");
-                if (!value)
-                {
-                    Controller.getInstance().CurrentSavedManager.ReloadItems();
-                }               
-            }
-        }
-
         private SolidColorBrush BITRATE_ELEMENT_COLOR = new SolidColorBrush(Color.FromArgb(255, 91, 91, 91));
         private SolidColorBrush BITRATE_ELEMENT_COLOR_ACTIVE = new SolidColorBrush(Color.FromArgb(255, 12, 100, 140));
 
-        public SolidColorBrush Bitrate1Color {
-            get
-            {
-                if (CurrentBitrate == Bitrates.AAC16)
-                    return BITRATE_ELEMENT_COLOR_ACTIVE;
-                else
-                    return BITRATE_ELEMENT_COLOR;
-            }
-        }
-        public SolidColorBrush Bitrate2Color
+        public SolidColorBrush Bitrate1Color
         {
             get
             {
@@ -131,7 +88,7 @@ namespace FantasyRadio
                     return BITRATE_ELEMENT_COLOR;
             }
         }
-        public SolidColorBrush Bitrate3Color
+        public SolidColorBrush Bitrate2Color
         {
             get
             {
@@ -141,17 +98,8 @@ namespace FantasyRadio
                     return BITRATE_ELEMENT_COLOR;
             }
         }
-        public SolidColorBrush Bitrate4Color
-        {
-            get
-            {
-                if (CurrentBitrate == Bitrates.AAC112)
-                    return BITRATE_ELEMENT_COLOR_ACTIVE;
-                else
-                    return BITRATE_ELEMENT_COLOR;
-            }
-        }
-        public SolidColorBrush Bitrate5Color
+
+        public SolidColorBrush Bitrate3Color
         {
             get
             {
@@ -162,7 +110,7 @@ namespace FantasyRadio
             }
         }
 
-        private Bitrates currentBitrate = Bitrates.AAC16;
+        private Bitrates currentBitrate = Bitrates.MP332;
         public Bitrates CurrentBitrate
         {
             get
@@ -175,8 +123,6 @@ namespace FantasyRadio
                 Notify("Bitrate1Color");
                 Notify("Bitrate2Color");
                 Notify("Bitrate3Color");
-                Notify("Bitrate4Color");
-                Notify("Bitrate5Color");
             }
         }
 
@@ -184,18 +130,14 @@ namespace FantasyRadio
         {
             switch(CurrentBitrate)
             {
-                case Bitrates.AAC16:
-                    return LocalizedStrings.Instance.getString("stream_url_AAC16");
                 case Bitrates.MP332:
-                    return LocalizedStrings.Instance.getString("stream_url_MP332");
+                    return Constants.streamURLS[0];
                 case Bitrates.MP364:
-                    return LocalizedStrings.Instance.getString("stream_url_MP364");
-                case Bitrates.AAC112:
-                    return LocalizedStrings.Instance.getString("stream_url_AAC112");
+                    return Constants.streamURLS[1];
                 case Bitrates.MP396:
-                    return LocalizedStrings.Instance.getString("stream_url_MP396");
+                    return Constants.streamURLS[2];
                 default:
-                    return LocalizedStrings.Instance.getString("stream_url_AAC16");
+                    return Constants.streamURLS[1];
             }
         }
 
@@ -215,8 +157,6 @@ namespace FantasyRadio
             pauseImage = new BitmapImage(new Uri("ms-appx:/Assets/pause.png", UriKind.Absolute));
             pressedPlayImage = new BitmapImage(new Uri("ms-appx:/Assets/play_pressed.png", UriKind.Absolute));
             pressedPauseImage = new BitmapImage(new Uri("ms-appx:/Assets/pause_pressed.png", UriKind.Absolute));
-            recImage = new BitmapImage(new Uri("ms-appx:/Assets/rec.png", UriKind.Absolute));
-            recActiveImage = new BitmapImage(new Uri("ms-appx:/Assets/rec_active.png", UriKind.Absolute));
         }
     }
 }

@@ -1,16 +1,16 @@
 ﻿using FantasyRadio.DataModel;
+using FantasyRadio.Utils;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Windows.Storage;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 
 namespace FantasyRadio
 {
     class SavedManager : INotifyPropertyChanged
-    {       
-        private ObservableCollection<SavedAudioEntity> savedItems = new ObservableCollection<SavedAudioEntity>();
+    {
+        private ObservableCollection<SavedAudioEntity> savedItems = new ObservableCollectionEx<SavedAudioEntity>();
         public ObservableCollection<SavedAudioEntity> Items
         {
             get
@@ -68,20 +68,6 @@ namespace FantasyRadio
 
         public string CurrentMP3Entity { get; set; }
 
-        private ImageSource playImage;
-        private ImageSource pauseImage;
-
-        public ImageSource PlayPauseImage
-        {
-            get
-            {
-                if (CurrentPlayStatus==PlayStatus.Play)
-                    return pauseImage;
-                else
-                    return playImage;
-            }
-        }
-
         private PlayStatus currentPlayStatus = PlayStatus.Stop;
         public PlayStatus CurrentPlayStatus
         {
@@ -91,27 +77,39 @@ namespace FantasyRadio
             }
             set
             {
+                //TODO
                 currentPlayStatus = value;
-                Notify("PlayPauseImage");
-                //Notify("PressedPlayPauseImage");
-                switch(value)
+                foreach (var item in Items)
+                {
+                    item.Playing = false;
+                }
+                switch (value)
                 {
                     case PlayStatus.Stop:
-                        CurrentMP3Entity = null;
+                        //CurrentMP3Entity = null;
                         break;
                     case PlayStatus.Pause:
                         break;
                     case PlayStatus.Play:
                         Controller.getInstance().CurrentRadioManager.CurrentPlayStatus = false;
+                        foreach (var entity in savedItems)
+                        {
+                            if (entity.Title.Equals(CurrentMP3Entity))
+                            {
+                                entity.Playing = true;
+                                break;
+                            }
+                        }                       
                         break;
                 }
+                Notify("Items");
             }
         }
 
         public SavedManager()
         {
-            playImage = new BitmapImage(new Uri("ms-appx:/Assets/play.png", UriKind.Absolute));
-            pauseImage = new BitmapImage(new Uri("ms-appx:/Assets/pause.png", UriKind.Absolute));
+            SavedAudioEntity.PlayImage = new BitmapImage(new Uri("ms-appx:/Assets/play.png", UriKind.Absolute));
+            SavedAudioEntity.PauseImage = new BitmapImage(new Uri("ms-appx:/Assets/pause.png", UriKind.Absolute));
         }
 
         public enum PlayStatus

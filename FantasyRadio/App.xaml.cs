@@ -119,24 +119,6 @@ namespace FantasyRadio
                     throw new Exception("Failed to create initial page");
                 }      
             }
-            //----------------------------------------------
-
-            if(!Bass.BASS.BASS_Init(-1, 44100, 0/*, IntPtr.Zero, IntPtr.Zero*/))
-            {
-                //throw new Exception("fail init");
-            }
-            Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PLAYLIST, 1); // enable playlist processing
-            Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PREBUF, 0); // minimize automatic pre-buffering, so we can do it (and display it) instead
-                                                                           //Bass.BASS.BASS_SetConfigPtr(Bass.BASS.BASS_CONFIG_NET_PROXY, IntPtr.Zero);
-                                                                           //Bass.BASS.BASS_SetVolume((float)0.5);
-            //Bass.BASS.BASS_SetConfigPtr(Bass.BASS.BASS_CONFIG_NET_AGENT | Bass.BASS.BASS_UNICODE, "My App");
-
-            /*Bass.BASS.BASS_Free();
-            Bass.BASS.BASS_Init(-1, 44100, 0);
-            Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PLAYLIST, 1);
-            Bass.BASS.BASS_SetConfig(Bass.BASS.BASS_CONFIG_NET_PREBUF, 0);
-            Bass.BASS.BASS_SetVolume((float)0.5);*/
-            //----------------------------------------------
             // Обеспечение активности текущего окна.
             Window.Current.Activate();
         }

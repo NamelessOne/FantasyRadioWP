@@ -1,4 +1,4 @@
 ﻿namespace FantasyRadio
 {
-    public enum Bitrates { AAC16, MP332, MP364, AAC112, MP396 }
+    public enum Bitrates { MP332, MP364, MP396 }
 }

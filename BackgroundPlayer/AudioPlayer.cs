@@ -1,6 +1,7 @@
 ﻿using FantasyRadio;
 using FantasyRadioPlaylistManager;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Windows.ApplicationModel.Background;
@@ -266,7 +267,8 @@ namespace BackgroundPlayer
             {
                 //Message channel that can be used to send messages to foreground
                 ValueSet message = new ValueSet();
-                message.Add(Constants.Trackchanged, sender.CurrentTrackName);
+                string trackChangedMessage = sender.CurrentTrackName + "?" + (byte)playlistManager.Current.CurrentSource;  //new TrackChangedMessage { trackName = sender.CurrentTrackName, source = (byte)playlistManager.Current.CurrentSource};
+                message.Add(Constants.Trackchanged, trackChangedMessage);
                 BackgroundMediaPlayer.SendMessageToForeground(message);
             }
         }
@@ -293,11 +295,21 @@ namespace BackgroundPlayer
         {
             if (sender.CurrentState == MediaPlayerState.Playing)
             {
-                systemmediatransportcontrol.PlaybackStatus = MediaPlaybackStatus.Playing;
+                systemmediatransportcontrol.PlaybackStatus = MediaPlaybackStatus.Playing;           
+                //Message channel that can be used to send messages to foreground
+                ValueSet message = new ValueSet();
+                string stateChangedMessage = (byte)sender.CurrentState + "?" + (byte)playlistManager.Current.CurrentSource;
+                message.Add(Constants.Statechanged, stateChangedMessage);
+                BackgroundMediaPlayer.SendMessageToForeground(message);
             }
             else if (sender.CurrentState == MediaPlayerState.Paused)
             {
                 systemmediatransportcontrol.PlaybackStatus = MediaPlaybackStatus.Paused;
+                //Message channel that can be used to send messages to foreground
+                ValueSet message = new ValueSet();
+                string stateChangedMessage = (byte)sender.CurrentState + "?" + (byte)playlistManager.Current.CurrentSource;
+                message.Add(Constants.Statechanged, stateChangedMessage);
+                BackgroundMediaPlayer.SendMessageToForeground(message);
             }
         }
 
@@ -347,6 +359,13 @@ namespace BackgroundPlayer
                         object track;
                         e.Data.TryGetValue(key, out track);
                         Playlist.StartTrackAt((int)track);
+                        break;
+                    case Constants.PlayStream:
+                        Debug.WriteLine("PlayStream");
+                        systemmediatransportcontrol.PlaybackStatus = MediaPlaybackStatus.Changing;
+                        object stream;
+                        e.Data.TryGetValue(key, out stream);
+                        Playlist.StartStream(stream.ToString());
                         break;
                 }
             }

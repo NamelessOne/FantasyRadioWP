@@ -93,6 +93,7 @@
       <Link>Constants.cs</Link>
     </Compile>
     <Compile Include="AudioPlayer.cs" />
+    <Compile Include="PlayerSource.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">

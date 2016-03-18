@@ -49,11 +49,6 @@
                             </Button.Background>
                         </Button>
                         <TextBlock Grid.Column="1"/>
-                        <Button MinWidth="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2" x:Uid="RecButton" x:Name="RecButton" Tapped ="Rec_Button_Click" BorderThickness="0">
-                            <Button.Background>
-                                <ImageBrush ImageSource="{Binding RecImage}" Stretch="Uniform"/>
-                            </Button.Background>
-                        </Button>
                         <TextBlock Grid.Column="3"/>
                         <TextBlock TextWrapping="Wrap" Grid.Column="4" x:Name="RadioTitle" x:Uid="RadioTitle" Text="{Binding CurrentTitle}"/>
                     </Grid>
@@ -67,12 +62,6 @@
                         </StackPanel>
                         <StackPanel Name="BitratePanel3" Orientation="Horizontal" Background="{Binding Bitrate3Color}" Tapped="bitrateClick" Tag="2">
                             <TextBlock x:Uid="BitrateText3" Text="Stream 3" Padding="5"/>
-                        </StackPanel>
-                        <StackPanel Name="BitratePanel4" Orientation="Horizontal" Background="{Binding Bitrate4Color}" Tapped="bitrateClick" Tag="3">
-                            <TextBlock x:Uid="BitrateText4" Text="Stream 4" Padding="5"/>
-                        </StackPanel>
-                        <StackPanel Name="BitratePanel5" Orientation="Horizontal" Background="{Binding Bitrate5Color}" Tapped="bitrateClick" Tag="4">
-                            <TextBlock x:Uid="BitrateText5" Text="Stream 5" Padding="5"/>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -162,7 +151,6 @@
                                             <ImageBrush ImageSource="Assets/download.png" Stretch="Uniform"/>
                                         </Button.Background>
                                     </Button>
-
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -203,7 +191,7 @@
                                     </Grid.ColumnDefinitions>
                                     <Button VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="0" Grid.Column="0" Tapped="PlaySavedTap" Tag="{Binding Title}" BorderBrush="Transparent">
                                         <Button.Background>
-                                            <ImageBrush ImageSource="Assets/play.png" Stretch="Uniform"/>
+                                            <ImageBrush ImageSource="{Binding Image}" Stretch="Uniform"/>
                                         </Button.Background>
                                     </Button>
                                     <Slider Tag="{Binding Title}" Name="SavedTimelineSlider" Grid.Column="1">

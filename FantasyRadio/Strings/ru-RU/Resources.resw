@@ -121,18 +121,12 @@
     <value>добавить</value>
   </data>
   <data name="BitrateText1.Text" xml:space="preserve">
-    <value>AAC 16 КБит/с</value>
-  </data>
-  <data name="BitrateText2.Text" xml:space="preserve">
     <value>MP3 32 КБит/с</value>
   </data>
-  <data name="BitrateText3.Text" xml:space="preserve">
+  <data name="BitrateText2.Text" xml:space="preserve">
     <value>MP3 64 КБит/с</value>
   </data>
-  <data name="BitrateText4.Text" xml:space="preserve">
-    <value>AAC 112 КБит/с</value>
-  </data>
-  <data name="BitrateText5.Text" xml:space="preserve">
+  <data name="BitrateText3.Text" xml:space="preserve">
     <value>MP3 96 КБит/с</value>
   </data>
   <data name="bitrate_element_color" xml:space="preserve">
@@ -170,21 +164,6 @@
   </data>
   <data name="SecondaryButton2.Label" xml:space="preserve">
     <value>О программе</value>
-  </data>
-  <data name="stream_url_AAC112" xml:space="preserve">
-    <value>http://fantasyradioru.no-ip.biz:8000</value>
-  </data>
-  <data name="stream_url_AAC16" xml:space="preserve">
-    <value>http://fantasyradioru.no-ip.biz:8016</value>
-  </data>
-  <data name="stream_url_MP332" xml:space="preserve">
-    <value>http://fantasyradioru.no-ip.biz:8008</value>
-  </data>
-  <data name="stream_url_MP364" xml:space="preserve">
-    <value>http://stream0.radiostyle.ru:8000/fantasy-radio</value>
-  </data>
-  <data name="stream_url_MP396" xml:space="preserve">
-    <value>http://fantasyradioru.no-ip.biz:8002/live</value>
   </data>
   <data name="Connecting" xml:space="preserve">
     <value>Соединение...</value>

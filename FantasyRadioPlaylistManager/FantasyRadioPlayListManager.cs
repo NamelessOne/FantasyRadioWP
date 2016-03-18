@@ -6,11 +6,14 @@ using Windows.Foundation;
 using Windows.Media.Playback;
 using Windows.Storage;
 using System.Linq;
-using FantasyRadioPlaylistManager.Tools;
-using Windows.Media.Core;
 
 namespace FantasyRadioPlaylistManager
 {
+    public enum PlayerSource
+    {
+        Stream = 0,
+        File = 1,
+    }
     public sealed class FantasyRadioPlayListManager
     {
         private static FRPlaylist instance;
@@ -42,6 +45,8 @@ namespace FantasyRadioPlaylistManager
     /// </summary>
     public sealed class FRPlaylist
     {
+        public PlayerSource CurrentSource { get; private set; }
+
         static string[] Tracks
         {
             get
@@ -54,9 +59,12 @@ namespace FantasyRadioPlaylistManager
             }
         }
 
+        int CurrentStreamId = -1;
+
         int CurrentTrackId = -1;
         private MediaPlayer mediaPlayer;
         private TimeSpan startPosition = TimeSpan.FromSeconds(0);
+
         internal FRPlaylist()
         {
             mediaPlayer = BackgroundMediaPlayer.Current;
@@ -98,7 +106,7 @@ namespace FantasyRadioPlaylistManager
         /// </summary>
         void mediaPlayer_CurrentStateChanged(MediaPlayer sender, object args)
         {
-
+            //TODO 
             if (sender.CurrentState == MediaPlayerState.Playing && startPosition != TimeSpan.FromSeconds(0))
             {
                 // if the start position is other than 0, then set it now
@@ -132,7 +140,14 @@ namespace FantasyRadioPlaylistManager
         {
             Debug.WriteLine("Failed with error code " + args.ExtendedErrorCode.ToString());
             //TODO обрабатывать зацикливания
-            //SkipToNext();
+            if (CurrentSource == PlayerSource.File)
+            {
+                SkipToNext();
+            }
+            else
+            {
+                mediaPlayer.Pause();
+            }
         }
 
         /// <summary>
@@ -140,6 +155,7 @@ namespace FantasyRadioPlaylistManager
         /// </summary>
         public void StartTrackAt(int id)
         {
+            CurrentSource = PlayerSource.File;
             if (id >= Tracks.Length)
             {
                 throw new ArgumentOutOfRangeException("tracks.Length = " + Tracks.Length + ", id = " + id);
@@ -155,14 +171,31 @@ namespace FantasyRadioPlaylistManager
         /// </summary>Failed with error code
         public void StartTrackAt(string TrackName)
         {
+            CurrentSource = PlayerSource.File;
             CurrentTrackId = Tracks.ToList().FindIndex(x => x.Equals(TrackName));
             mediaPlayer.AutoPlay = false;
-            //mediaPlayer.SetFileSource(getFileByName(TrackName));
-            //var s = new ShoutcastStream();
-            //var conenctTask = s.ConnectAsync(new Uri("http://fantasyradioru.no-ip.biz:8002/live"));
-            //conenctTask.Wait();
-            //mediaPlayer.SetStreamSource(s);
-            mediaPlayer.SetUriSource(new Uri("http://fantasyradioru.no-ip.biz:8002/live"));
+            mediaPlayer.SetFileSource(getFileByName(TrackName));
+        }
+
+        public void StartStream(string streamUrl)
+        {
+            CurrentSource = PlayerSource.Stream;
+            CurrentStreamId = Constants.streamURLS.ToList().FindIndex(x => x.Equals(streamUrl));
+            mediaPlayer.AutoPlay = false;
+            mediaPlayer.SetUriSource(new Uri(streamUrl));
+        }
+
+        public void StartStreamAt(int index)
+        {
+            CurrentSource = PlayerSource.Stream;
+            if (index >= Constants.streamURLS.Length)
+            {
+                throw new ArgumentOutOfRangeException("streamURLs.Length = " + Constants.streamURLS.Length + ", id = " + index);
+            }
+            CurrentStreamId = index;
+            var URL = Constants.streamURLS[index];
+            mediaPlayer.AutoPlay = false;
+            mediaPlayer.SetUriSource(new Uri(URL));
         }
 
         /// <summary>
@@ -170,6 +203,7 @@ namespace FantasyRadioPlaylistManager
         /// </summary>
         public void StartTrackAt(string TrackName, TimeSpan position)
         {
+            CurrentSource = PlayerSource.File;
             for (int i = 0; i < Tracks.Length; i++)
             {
                 if (Tracks[i].Contains(TrackName))
@@ -194,6 +228,7 @@ namespace FantasyRadioPlaylistManager
         /// </summary>
         public void PlayAllTracks()
         {
+            CurrentSource = PlayerSource.Stream;
             StartTrackAt(0);
         }
 
@@ -202,7 +237,14 @@ namespace FantasyRadioPlaylistManager
         /// </summary>
         public void SkipToNext()
         {
-            StartTrackAt((CurrentTrackId + 1) % Tracks.Length);
+            if (CurrentSource == PlayerSource.File)
+            {
+                StartTrackAt((CurrentTrackId + 1) % Tracks.Length);
+            }
+            else
+            {
+                StartStreamAt((CurrentStreamId + 1) % Constants.streamURLS.Length);
+            }
         }
 
         /// <summary>
@@ -210,13 +252,27 @@ namespace FantasyRadioPlaylistManager
         /// </summary>
         public void SkipToPrevious()
         {
-            if (CurrentTrackId == 0)
+            if (CurrentSource == PlayerSource.File)
             {
-                StartTrackAt(CurrentTrackId);
+                if (CurrentTrackId == 0)
+                {
+                    StartTrackAt(CurrentTrackId);
+                }
+                else
+                {
+                    StartTrackAt(CurrentTrackId - 1);
+                }
             }
             else
             {
-                StartTrackAt(CurrentTrackId - 1);
+                if (CurrentStreamId == 0)
+                {
+                    StartStreamAt(CurrentStreamId);
+                }
+                else
+                {
+                    StartStreamAt(CurrentTrackId - 1);
+                }
             }
         }
 
