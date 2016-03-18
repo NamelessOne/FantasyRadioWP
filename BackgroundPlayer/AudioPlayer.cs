@@ -180,7 +180,7 @@ namespace BackgroundPlayer
                     //When this happens, the task gets re-initialized and that is asynchronous and hence the wait
                     if (!backgroundtaskrunning)
                     {
-                        bool result = BackgroundTaskStarted.WaitOne(2000);
+                        bool result = BackgroundTaskStarted.WaitOne(5000);
                         if (!result)
                             throw new Exception("Background Task didnt initialize in time");
                     }
@@ -333,6 +333,20 @@ namespace BackgroundPlayer
                     case Constants.SkipPrevious: // User has chosen to skip track from app context.
                         Debug.WriteLine("Skipping to previous");
                         SkipToPrevious();
+                        break;
+                    case Constants.PlayFileByName: // User has chosen to play file
+                        Debug.WriteLine("PlayFileByName");
+                        systemmediatransportcontrol.PlaybackStatus = MediaPlaybackStatus.Changing;
+                        object trackName;
+                        e.Data.TryGetValue(key, out trackName);
+                        Playlist.StartTrackAt((string)trackName);
+                        break;
+                    case Constants.PlayFileById: // User has chosen to play file
+                        Debug.WriteLine("PlayFileById");
+                        systemmediatransportcontrol.PlaybackStatus = MediaPlaybackStatus.Changing;
+                        object track;
+                        e.Data.TryGetValue(key, out track);
+                        Playlist.StartTrackAt((int)track);
                         break;
                 }
             }

@@ -1,11 +1,17 @@
 ﻿using FantasyRadio.Common;
 using FantasyRadio.DataModel;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Resources;
+using Windows.Foundation;
+using Windows.Foundation.Collections;
+using Windows.Media.Playback;
 using Windows.Storage;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -27,10 +33,14 @@ namespace FantasyRadio
         private const long DURATION = 500000;
         DispatcherTimer timer = new DispatcherTimer();
         private const int BUFFER_SIZE = 1024 * 1024 * 10;
+        //---------------------------------------------------
+        private bool isMyBackgroundTaskRunning = false;
+        private AutoResetEvent SererInitialized;
 
         public PivotPage()
         {
             this.InitializeComponent();
+            SererInitialized = new AutoResetEvent(false);
             pivotPage = this;
             TimeSpan ts = new TimeSpan(DURATION);
             timer.Tick += new EventHandler<object>(timerAction);
@@ -234,6 +244,7 @@ namespace FantasyRadio
                     Bass.BASS.BASS_TAG_META));
             if (meta != null)
             {
+                Debug.WriteLine("Meta tags");
                 int ti = meta.IndexOf("StreamTitle='");
                 int te = meta.IndexOf(";");
                 if (ti >= 0)
@@ -250,6 +261,7 @@ namespace FantasyRadio
                 }
                 else
                 {
+                    Debug.WriteLine("OGG tags");
                     string ogg = Marshal.PtrToStringAnsi(Bass.BASS.BASS_ChannelGetTags(
                             Controller.getInstance().CurrentBassManager.Chan, Bass.BASS.BASS_TAG_OGG));
                     if (ogg != null)
@@ -399,7 +411,7 @@ namespace FantasyRadio
                 bool b = await Controller.getInstance().CurrentArchiveManager.saveMp3Async(url);
                 if (b)
                 {
-                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
                         Controller.getInstance().CurrentSavedManager.ReloadItems();
                     });
@@ -414,7 +426,7 @@ namespace FantasyRadio
             {
                 var fileName = (sender as Control).Tag.ToString();
                 var storageFolder = ApplicationData.Current.LocalFolder; //мб RoamingFolder?   
-                var createStorageFolderTask = storageFolder.CreateFolderAsync(SavedManager.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
+                var createStorageFolderTask = storageFolder.CreateFolderAsync(Constants.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
                 createStorageFolderTask.AsTask().Wait();
                 var folder = createStorageFolderTask.GetResults();
                 var getFileTask = folder.GetFileAsync(fileName).AsTask();
@@ -429,124 +441,253 @@ namespace FantasyRadio
             }
         }
 
-        private void PlaySavedTap(object sender, TappedRoutedEventArgs e)
+        private void PlaySavedTap(Object sender, TappedRoutedEventArgs e)
         {
-            //TODO
+            Debug.WriteLine("Play button pressed from App");
             var tag = (sender as Control).Tag;
-            if (Bass.BASS.BASS_ChannelIsActive(Controller.getInstance().CurrentBassManager.Chan) == Bass.BASS.BASS_ACTIVE_PAUSED)
+            if (IsMyBackgroundTaskRunning && !(MediaPlayerState.Closed == BackgroundMediaPlayer.Current.CurrentState)) //Эту логику убрать в сам плеер
             {
-                if (Controller.getInstance().CurrentSavedManager.CurrentMP3Entity == tag.ToString())
-                {
-                    // Это была пауза.
-                    Bass.BASS.BASS_ChannelPlay(Controller.getInstance().CurrentBassManager.Chan, false);
-                    Controller.getInstance().CurrentSavedManager.CurrentPlayStatus = SavedManager.PlayStatus.Play;
-                    return;
-                }
+                var message = new ValueSet();
+                message.Add(Constants.PlayFileByName, tag);
+                BackgroundMediaPlayer.SendMessageToBackground(message);
+                //if (MediaPlayerState.Playing == BackgroundMediaPlayer.Current.CurrentState)
+                //{
+                //    BackgroundMediaPlayer.Current.Pause();
+                //}
+                //    /*else if (MediaPlayerState.Paused == BackgroundMediaPlayer.Current.CurrentState)
+                //    {
+                //        BackgroundMediaPlayer.Current.Play();
+                //    }*/
+                //    else if (MediaPlayerState.Closed == BackgroundMediaPlayer.Current.CurrentState || MediaPlayerState.Paused == BackgroundMediaPlayer.Current.CurrentState)
+                //    {
+                //        StartBackgroundAudioTask(tag);
+                //    } 
+                //}
             }
-            /*try
+            else
             {
-                seekTimer.scheduleAtFixedRate(seekTask, 0, 1000);
+                StartBackgroundAudioTask(tag);
             }
-            catch (Exception ex)
+        }
+
+        private void StartBackgroundAudioTask(object tag)
+        {
+            AddMediaPlayerEventHandlers();
+            var backgroundtaskinitializationresult = this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
-                //ex.printStackTrace();
-            }*/
-            if (Controller.getInstance().IsPlaying)
-            {
-                if (Controller.getInstance().CurrentSavedManager.CurrentMP3Entity == tag.ToString())
+                bool result = SererInitialized.WaitOne(5000);
+                //Send message to initiate playback
+                if (result == true)
                 {
-                    Bass.BASS.BASS_ChannelPause(Controller.getInstance().CurrentBassManager.Chan);
-                    Controller.getInstance().CurrentSavedManager.CurrentPlayStatus = SavedManager.PlayStatus.Pause;
+                    var message = new ValueSet();
+                    message.Add(Constants.PlayFileByName, tag);
+                    BackgroundMediaPlayer.SendMessageToBackground(message);
                 }
                 else
                 {
-                    // Нажата кнопка плэй у другого трека
-                    //offPreviousMP3ListRow();
-                    Controller.getInstance().CurrentSavedManager.CurrentMP3Entity = tag.ToString();
-                    //nextPos = adapter.getPosition(PlayerState.getInstance().getCurrentMP3Entity()); // почему-то 0
-                    Bass.BASS.BASS_StreamFree(Controller.getInstance().CurrentBassManager.Chan);
-                    // -------------------------------------------------
-
-                    var fileName = (sender as Control).Tag.ToString();
-                    var storageFolder = ApplicationData.Current.LocalFolder; 
-                    var createStorageFolderTask = storageFolder.CreateFolderAsync(SavedManager.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
-                    createStorageFolderTask.AsTask().Wait();
-                    var folder = createStorageFolderTask.GetResults();
-                    var getFileTask = folder.GetFileAsync(fileName).AsTask();
-                    getFileTask.Wait();
-                    var readTask = WindowsRuntimeStorageExtensions.OpenStreamForReadAsync(getFileTask.Result);
-                    readTask.Wait();
-                    using (var stream = readTask.Result)
-                    {
-                        // create the buffer which will keep the file in memory 
-                        byte[] buffer = new byte[stream.Length];
-                        // read the file into the buffer 
-                        stream.Read(buffer, 0, buffer.Length);
-                        // buffer is filled, file can be closed 
-                        var _hGCFile = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                        //TODO _hGFile.Free()
-                        int x;
-                        if ((x = Bass.BASS.BASS_StreamCreateFile(true, _hGCFile.AddrOfPinnedObject(), 0L, buffer.Length, Bass.BASS.BASS_SAMPLE_SOFTWARE | Bass.BASS.BASS_SAMPLE_FLOAT)) == 0)
-                        {
-                            Controller.getInstance().CurrentBassManager.Chan = x;
-                            int errCode = Bass.BASS.BASS_ErrorGetCode();
-                            //Error("Can't play the file");
-                            return;
-                        }
-                        Controller.getInstance().CurrentBassManager.Chan = x;
-                    }
-                    Bass.BASS.BASS_ChannelPlay(Controller.getInstance().CurrentBassManager.Chan, false);
-                    Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().CurrentBassManager.Chan,
-                            Bass.BASS.BASS_SYNC_END, 0, EndSync, 0);
-                    Controller.getInstance().CurrentSavedManager.CurrentPlayStatus = SavedManager.PlayStatus.Play;
-                    // -------------------------------------------------
-                    //onCurrentMP3ListRow();
+                    throw new Exception("Background Audio Task didn't start in expected time");
                 }
             }
-            else {
-                if (Bass.BASS.BASS_ChannelIsActive(Controller.getInstance().CurrentBassManager.Chan) == Bass.BASS.BASS_ACTIVE_PAUSED)
-                {
-                    //offPreviousMP3ListRow();
-                }
-                Controller.getInstance().CurrentSavedManager.CurrentMP3Entity = tag.ToString();
-                //nextPos = adapter.getPosition(PlayerState.getInstance().getCurrentMP3Entity());
-                Bass.BASS.BASS_StreamFree(Controller.getInstance().CurrentBassManager.Chan);
-                // -------------------------------------------------
-                var fileName = (sender as Control).Tag.ToString();
-                var storageFolder = ApplicationData.Current.LocalFolder;
-                var createStorageFolderTask = storageFolder.CreateFolderAsync(SavedManager.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
-                createStorageFolderTask.AsTask().Wait();
-                var folder = createStorageFolderTask.GetResults();
-                var getFileTask = folder.GetFileAsync(fileName).AsTask();
-                getFileTask.Wait();
-                var readTask = WindowsRuntimeStorageExtensions.OpenStreamForReadAsync(getFileTask.Result);
-                readTask.Wait();
-                using (var stream = readTask.Result)
-                {
-                    // create the buffer which will keep the file in memory 
-                    byte[] buffer = new byte[stream.Length];
-                    // read the file into the buffer 
-                    stream.Read(buffer, 0, buffer.Length);
-                    // buffer is filled, file can be closed 
-                    var _hGCFile = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                    int x;
-                    if ((x = Bass.BASS.BASS_StreamCreateFile(true, _hGCFile.AddrOfPinnedObject(), 0L, buffer.Length, Bass.BASS.BASS_SAMPLE_SOFTWARE | Bass.BASS.BASS_SAMPLE_FLOAT)) == 0)
-                    {
-                        Controller.getInstance().CurrentBassManager.Chan = x;
-                        int errCode = Bass.BASS.BASS_ErrorGetCode();
-                        //Error("Can't play the file");
-                        return;
-                    }
-                    Controller.getInstance().CurrentBassManager.Chan = x;
-                }
-                Bass.BASS.BASS_ChannelPlay(Controller.getInstance().CurrentBassManager.Chan, false);
-                Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().CurrentBassManager.Chan, Bass.BASS.BASS_SYNC_END, 0,
-                        EndSync, 0);
-                Controller.getInstance().CurrentSavedManager.CurrentPlayStatus = SavedManager.PlayStatus.Play;
-                // -------------------------------------------------
-                //onCurrentMP3ListRow();
+            );
+            backgroundtaskinitializationresult.Completed = new AsyncActionCompletedHandler(BackgroundTaskInitializationCompleted);
+        }
+
+        /// <summary>
+        /// Subscribes to MediaPlayer events
+        /// </summary>
+        private void AddMediaPlayerEventHandlers()
+        {
+            BackgroundMediaPlayer.Current.CurrentStateChanged += this.MediaPlayer_CurrentStateChanged;
+            BackgroundMediaPlayer.MessageReceivedFromBackground += this.BackgroundMediaPlayer_MessageReceivedFromBackground;
+        }
+
+        private void BackgroundTaskInitializationCompleted(IAsyncAction action, AsyncStatus status)
+        {
+            if (status == AsyncStatus.Completed)
+            {
+                Debug.WriteLine("Background Audio Task initialized");
+            }
+            else if (status == AsyncStatus.Error)
+            {
+                Debug.WriteLine("Background Audio Task could not initialized due to an error ::" + action.ErrorCode.ToString());
             }
         }
+
+        /// <summary>
+        /// MediaPlayer state changed event handlers. 
+        /// Note that we can subscribe to events even if Media Player is playing media in background
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        async void MediaPlayer_CurrentStateChanged(MediaPlayer sender, object args)
+        {
+            switch (sender.CurrentState)
+            {
+                case MediaPlayerState.Playing:
+                    await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    {
+                        //playButton.Content = "| |";     // Change to pause button
+                        //prevButton.IsEnabled = true;
+                        //nextButton.IsEnabled = true;
+                    }
+                        );
+
+                    break;
+                case MediaPlayerState.Paused:
+                    await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    {
+                        //playButton.Content = ">";     // Change to play button
+                    }
+                    );
+
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// This event fired when a message is recieved from Background Process
+        /// </summary>
+        async void BackgroundMediaPlayer_MessageReceivedFromBackground(object sender, MediaPlayerDataReceivedEventArgs e)
+        {
+            foreach (string key in e.Data.Keys)
+            {
+                switch (key)
+                {
+                    case Constants.Trackchanged:
+                        //When foreground app is active change track based on background message
+                        await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                        {
+                            //txtCurrentTrack.Text = (string)e.Data[key];
+                        }
+                        );
+                        break;
+                    case Constants.BackgroundTaskStarted:
+                        //Wait for Background Task to be initialized before starting playback
+                        Debug.WriteLine("Background Task started");
+                        SererInitialized.Set();
+                        break;
+                }
+            }
+        }
+
+        //private void PlaySavedTap(object sender, TappedRoutedEventArgs e)
+        //{
+        //    //TODO
+        //    var tag = (sender as Control).Tag;
+        //    if (Bass.BASS.BASS_ChannelIsActive(Controller.getInstance().CurrentBassManager.Chan) == Bass.BASS.BASS_ACTIVE_PAUSED)
+        //    {
+        //        if (Controller.getInstance().CurrentSavedManager.CurrentMP3Entity == tag.ToString())
+        //        {
+        //            // Это была пауза.
+        //            Bass.BASS.BASS_ChannelPlay(Controller.getInstance().CurrentBassManager.Chan, false);
+        //            Controller.getInstance().CurrentSavedManager.CurrentPlayStatus = SavedManager.PlayStatus.Play;
+        //            return;
+        //        }
+        //    }
+        //    /*try
+        //    {
+        //        seekTimer.scheduleAtFixedRate(seekTask, 0, 1000);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        //ex.printStackTrace();
+        //    }*/
+        //    if (Controller.getInstance().IsPlaying)
+        //    {
+        //        if (Controller.getInstance().CurrentSavedManager.CurrentMP3Entity == tag.ToString())
+        //        {
+        //            Bass.BASS.BASS_ChannelPause(Controller.getInstance().CurrentBassManager.Chan);
+        //            Controller.getInstance().CurrentSavedManager.CurrentPlayStatus = SavedManager.PlayStatus.Pause;
+        //        }
+        //        else
+        //        {
+        //            // Нажата кнопка плэй у другого трека
+        //            //offPreviousMP3ListRow();
+        //            Controller.getInstance().CurrentSavedManager.CurrentMP3Entity = tag.ToString();
+        //            //nextPos = adapter.getPosition(PlayerState.getInstance().getCurrentMP3Entity()); // почему-то 0
+        //            Bass.BASS.BASS_StreamFree(Controller.getInstance().CurrentBassManager.Chan);
+        //            // -------------------------------------------------
+
+        //            var fileName = (sender as Control).Tag.ToString();
+        //            var storageFolder = ApplicationData.Current.LocalFolder; 
+        //            var createStorageFolderTask = storageFolder.CreateFolderAsync(Constants.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
+        //            createStorageFolderTask.AsTask().Wait();
+        //            var folder = createStorageFolderTask.GetResults();
+        //            var getFileTask = folder.GetFileAsync(fileName).AsTask();
+        //            getFileTask.Wait();
+        //            var readTask = WindowsRuntimeStorageExtensions.OpenStreamForReadAsync(getFileTask.Result);
+        //            readTask.Wait();
+        //            using (var stream = readTask.Result)
+        //            {
+        //                // create the buffer which will keep the file in memory 
+        //                byte[] buffer = new byte[stream.Length];
+        //                // read the file into the buffer 
+        //                stream.Read(buffer, 0, buffer.Length);
+        //                // buffer is filled, file can be closed 
+        //                var _hGCFile = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+        //                //TODO _hGFile.Free()
+        //                int x;
+        //                if ((x = Bass.BASS.BASS_StreamCreateFile(true, _hGCFile.AddrOfPinnedObject(), 0L, buffer.Length, Bass.BASS.BASS_SAMPLE_SOFTWARE | Bass.BASS.BASS_SAMPLE_FLOAT)) == 0)
+        //                {
+        //                    Controller.getInstance().CurrentBassManager.Chan = x;
+        //                    int errCode = Bass.BASS.BASS_ErrorGetCode();
+        //                    //Error("Can't play the file");
+        //                    return;
+        //                }
+        //                Controller.getInstance().CurrentBassManager.Chan = x;
+        //            }
+        //            Bass.BASS.BASS_ChannelPlay(Controller.getInstance().CurrentBassManager.Chan, false);
+        //            Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().CurrentBassManager.Chan,
+        //                    Bass.BASS.BASS_SYNC_END, 0, EndSync, 0);
+        //            Controller.getInstance().CurrentSavedManager.CurrentPlayStatus = SavedManager.PlayStatus.Play;
+        //            // -------------------------------------------------
+        //            //onCurrentMP3ListRow();
+        //        }
+        //    }
+        //    else {
+        //        if (Bass.BASS.BASS_ChannelIsActive(Controller.getInstance().CurrentBassManager.Chan) == Bass.BASS.BASS_ACTIVE_PAUSED)
+        //        {
+        //            //offPreviousMP3ListRow();
+        //        }
+        //        Controller.getInstance().CurrentSavedManager.CurrentMP3Entity = tag.ToString();
+        //        //nextPos = adapter.getPosition(PlayerState.getInstance().getCurrentMP3Entity());
+        //        Bass.BASS.BASS_StreamFree(Controller.getInstance().CurrentBassManager.Chan);
+        //        // -------------------------------------------------
+        //        var fileName = (sender as Control).Tag.ToString();
+        //        var storageFolder = ApplicationData.Current.LocalFolder;
+        //        var createStorageFolderTask = storageFolder.CreateFolderAsync(Constants.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
+        //        createStorageFolderTask.AsTask().Wait();
+        //        var folder = createStorageFolderTask.GetResults();
+        //        var getFileTask = folder.GetFileAsync(fileName).AsTask();
+        //        getFileTask.Wait();
+        //        var readTask = WindowsRuntimeStorageExtensions.OpenStreamForReadAsync(getFileTask.Result);
+        //        readTask.Wait();
+        //        using (var stream = readTask.Result)
+        //        {
+        //            // create the buffer which will keep the file in memory 
+        //            byte[] buffer = new byte[stream.Length];
+        //            // read the file into the buffer 
+        //            stream.Read(buffer, 0, buffer.Length);
+        //            // buffer is filled, file can be closed 
+        //            var _hGCFile = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+        //            int x;
+        //            if ((x = Bass.BASS.BASS_StreamCreateFile(true, _hGCFile.AddrOfPinnedObject(), 0L, buffer.Length, Bass.BASS.BASS_SAMPLE_SOFTWARE | Bass.BASS.BASS_SAMPLE_FLOAT)) == 0)
+        //            {
+        //                Controller.getInstance().CurrentBassManager.Chan = x;
+        //                int errCode = Bass.BASS.BASS_ErrorGetCode();
+        //                //Error("Can't play the file");
+        //                return;
+        //            }
+        //            Controller.getInstance().CurrentBassManager.Chan = x;
+        //        }
+        //        Bass.BASS.BASS_ChannelPlay(Controller.getInstance().CurrentBassManager.Chan, false);
+        //        Bass.BASS.BASS_ChannelSetSync(Controller.getInstance().CurrentBassManager.Chan, Bass.BASS.BASS_SYNC_END, 0,
+        //                EndSync, 0);
+        //        Controller.getInstance().CurrentSavedManager.CurrentPlayStatus = SavedManager.PlayStatus.Play;
+        //        // -------------------------------------------------
+        //        //onCurrentMP3ListRow();
+        //    }
+        //}
 
         private void SettingsButtonClick(object sender, RoutedEventArgs e)
         {
@@ -556,6 +697,26 @@ namespace FantasyRadio
         private void AboutButtonClick(object sender, RoutedEventArgs e)
         {
             Frame.Navigate(typeof(AboutPage));
+        }
+
+        private bool IsMyBackgroundTaskRunning
+        {
+            get
+            {
+                if (isMyBackgroundTaskRunning)
+                    return true;
+
+                object value = ApplicationSettingsHelper.ReadResetSettingsValue(Constants.BackgroundTaskState);
+                if (value == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    isMyBackgroundTaskRunning = ((String)value).Equals(Constants.BackgroundTaskRunning);
+                    return isMyBackgroundTaskRunning;
+                }
+            }
         }
     }
 }

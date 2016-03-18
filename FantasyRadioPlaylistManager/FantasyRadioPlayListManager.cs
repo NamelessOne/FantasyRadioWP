@@ -1,17 +1,20 @@
-﻿using System;
+﻿using FantasyRadio;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Windows.Foundation;
 using Windows.Media.Playback;
+using Windows.Storage;
+using System.Linq;
+using FantasyRadioPlaylistManager.Tools;
+using Windows.Media.Core;
 
 namespace FantasyRadioPlaylistManager
 {
     public sealed class FantasyRadioPlayListManager
     {
-        #region Private members
         private static FRPlaylist instance;
-        #endregion
 
-        #region Playlist management methods/properties
         public FRPlaylist Current
         {
             get
@@ -31,7 +34,6 @@ namespace FantasyRadioPlaylistManager
         {
             instance = null;
         }
-        #endregion
     }
 
     /// <summary>
@@ -40,18 +42,18 @@ namespace FantasyRadioPlaylistManager
     /// </summary>
     public sealed class FRPlaylist
     {
-        static string[] tracks = { "ms-appx:///Assets/Media/Ring01.wma",
-                                   "ms-appx:///Assets/Media/Ring02.wma",
-                                   "ms-appx:///Assets/Media/Ring03.wma"
-                                };
-        static string[] streams =
+        static string[] Tracks
         {
-            "http://fantasyradioru.no-ip.biz:8000",
-            "http://fantasyradioru.no-ip.biz:8016",
-            "http://fantasyradioru.no-ip.biz:8008",
-            "http://stream0.radiostyle.ru:8000/fantasy-radio",
-            "http://fantasyradioru.no-ip.biz:8002/live"
-        };
+            get
+            {
+                //TODO вероятно, излишне делать это каждый раз. Кроме приложения файлы эти менять вроде всё равно никто не сможет:/
+                var storageFolder = ApplicationData.Current.LocalFolder; //мб RoamingFolder?   
+                var createStorageFolderTask = storageFolder.CreateFolderAsync(Constants.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
+                createStorageFolderTask.AsTask().Wait();
+                return ListFilesInFolder(createStorageFolderTask.GetResults());
+            }
+        }
+
         int CurrentTrackId = -1;
         private MediaPlayer mediaPlayer;
         private TimeSpan startPosition = TimeSpan.FromSeconds(0);
@@ -76,14 +78,14 @@ namespace FantasyRadioPlaylistManager
                 {
                     return String.Empty;
                 }
-                if (CurrentTrackId < tracks.Length)
+                if (CurrentTrackId < Tracks.Length)
                 {
-                    string fullUrl = tracks[CurrentTrackId];
-
-                    return fullUrl.Split('/')[fullUrl.Split('/').Length - 1];
+                    return Tracks[CurrentTrackId];
                 }
                 else
+                {
                     throw new ArgumentOutOfRangeException("Track Id is higher than total number of tracks");
+                }
             }
         }
         /// <summary>
@@ -129,34 +131,38 @@ namespace FantasyRadioPlaylistManager
         private void mediaPlayer_MediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
         {
             Debug.WriteLine("Failed with error code " + args.ExtendedErrorCode.ToString());
+            //TODO обрабатывать зацикливания
+            //SkipToNext();
         }
 
         /// <summary>
         /// Starts track at given position in the track list
         /// </summary>
-        private void StartTrackAt(int id)
+        public void StartTrackAt(int id)
         {
-            string source = tracks[id];
+            if (id >= Tracks.Length)
+            {
+                throw new ArgumentOutOfRangeException("tracks.Length = " + Tracks.Length + ", id = " + id);
+            }
             CurrentTrackId = id;
+            var TrackName = Tracks[id];
             mediaPlayer.AutoPlay = false;
-            mediaPlayer.SetUriSource(new Uri(source));
+            mediaPlayer.SetFileSource(getFileByName(TrackName));
         }
 
         /// <summary>
         /// Starts a given track by finding its name
-        /// </summary>
+        /// </summary>Failed with error code
         public void StartTrackAt(string TrackName)
         {
-            for (int i = 0; i < tracks.Length; i++)
-            {
-                if (tracks[i].Contains(TrackName))
-                {
-                    string source = tracks[i];
-                    CurrentTrackId = i;
-                    mediaPlayer.AutoPlay = false;
-                    mediaPlayer.SetUriSource(new Uri(source));
-                }
-            }
+            CurrentTrackId = Tracks.ToList().FindIndex(x => x.Equals(TrackName));
+            mediaPlayer.AutoPlay = false;
+            //mediaPlayer.SetFileSource(getFileByName(TrackName));
+            //var s = new ShoutcastStream();
+            //var conenctTask = s.ConnectAsync(new Uri("http://fantasyradioru.no-ip.biz:8002/live"));
+            //conenctTask.Wait();
+            //mediaPlayer.SetStreamSource(s);
+            mediaPlayer.SetUriSource(new Uri("http://fantasyradioru.no-ip.biz:8002/live"));
         }
 
         /// <summary>
@@ -164,9 +170,9 @@ namespace FantasyRadioPlaylistManager
         /// </summary>
         public void StartTrackAt(string TrackName, TimeSpan position)
         {
-            for (int i = 0; i < tracks.Length; i++)
+            for (int i = 0; i < Tracks.Length; i++)
             {
-                if (tracks[i].Contains(TrackName))
+                if (Tracks[i].Contains(TrackName))
                 {
                     CurrentTrackId = i;
                     break;
@@ -180,7 +186,7 @@ namespace FantasyRadioPlaylistManager
             // able to seek to new start position
             mediaPlayer.Volume = 0;
             startPosition = position;
-            mediaPlayer.SetUriSource(new Uri(tracks[CurrentTrackId]));
+            mediaPlayer.SetFileSource(getFileByName(Tracks[CurrentTrackId]));
         }
 
         /// <summary>
@@ -196,7 +202,7 @@ namespace FantasyRadioPlaylistManager
         /// </summary>
         public void SkipToNext()
         {
-            StartTrackAt((CurrentTrackId + 1) % tracks.Length);
+            StartTrackAt((CurrentTrackId + 1) % Tracks.Length);
         }
 
         /// <summary>
@@ -214,6 +220,30 @@ namespace FantasyRadioPlaylistManager
             }
         }
 
+        private IStorageFile getFileByName(string name)
+        {
+            var storageFolder = ApplicationData.Current.LocalFolder;
+            var createStorageFolderTask = storageFolder.CreateFolderAsync(Constants.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
+            createStorageFolderTask.AsTask().Wait();
+            var folder = createStorageFolderTask.GetResults();
+            var getFileTask = folder.GetFileAsync(name).AsTask();
+            getFileTask.Wait();
+            var result = getFileTask.Result;
+            return result;
+        }
 
+        private static string[] ListFilesInFolder(StorageFolder folder)
+        {
+            var result = new List<string>();
+            // Get the files in the current folder.
+            var getFilesTask = folder.GetFilesAsync().AsTask();
+            getFilesTask.Wait();
+            var filesInFolder = getFilesTask.Result;
+            foreach (StorageFile currentFile in filesInFolder)
+            {
+                result.Add(currentFile.Name);
+            }
+            return result.ToArray();
+        }
     }
 }

@@ -9,8 +9,7 @@ using Windows.UI.Xaml.Media.Imaging;
 namespace FantasyRadio
 {
     class SavedManager : INotifyPropertyChanged
-    {
-        public const string SAVED_FOLDER_NAME = "saved";
+    {       
         private ObservableCollection<SavedAudioEntity> savedItems = new ObservableCollection<SavedAudioEntity>();
         public ObservableCollection<SavedAudioEntity> Items
         {
@@ -44,7 +43,7 @@ namespace FantasyRadio
         public void ReloadItems()
         {
             var storageFolder = ApplicationData.Current.LocalFolder; //мб RoamingFolder?   
-            var createStorageFolderTask = storageFolder.CreateFolderAsync(SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
+            var createStorageFolderTask = storageFolder.CreateFolderAsync(Constants.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
             createStorageFolderTask.AsTask().Wait();
             Items = ListFilesInFolder(createStorageFolderTask.GetResults(), 1);
         }

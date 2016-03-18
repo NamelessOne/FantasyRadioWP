@@ -47,7 +47,7 @@ namespace FantasyRadio
                 {
                     Marshal.Copy(buffer, ba, 0, length);
                     var storageFolder = ApplicationData.Current.LocalFolder;   
-                    var createStorageFolderTask = storageFolder.CreateFolderAsync(SavedManager.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
+                    var createStorageFolderTask = storageFolder.CreateFolderAsync(Constants.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
                     createStorageFolderTask.AsTask().Wait();
                     var mp3sFolder = createStorageFolderTask.GetResults();
                     string fileName = Controller.getInstance().CurrentRadioManager.CurrentTitle;

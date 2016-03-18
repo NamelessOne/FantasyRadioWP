@@ -195,6 +195,12 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BackgroundPlayer\BackgroundPlayer.csproj">
+      <Project>{3a9ee71f-9982-4f7f-89d5-73751c45b5e0}</Project>
+      <Name>BackgroundPlayer</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">
     <VisualStudioVersion>12.0</VisualStudioVersion>
   </PropertyGroup>

@@ -2,6 +2,7 @@
 {
     internal class Constants
     {
+        public const string SAVED_FOLDER_NAME = "saved";
         public const string CurrentTrack = "trackname";
         public const string BackgroundTaskStarted = "BackgroundTaskStarted";
         public const string BackgroundTaskRunning = "BackgroundTaskRunning";
@@ -17,5 +18,8 @@
         public const string Trackchanged = "songchanged";
         public const string ForegroundAppActive = "Active";
         public const string ForegroundAppSuspended = "Suspended";
+        public const string PlayFileByName = "playfilebyname";
+        public const string PlayFileById = "playfilebyid";
+
     }
 }
