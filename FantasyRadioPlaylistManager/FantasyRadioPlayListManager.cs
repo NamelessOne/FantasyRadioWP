@@ -6,6 +6,7 @@ using Windows.Foundation;
 using Windows.Media.Playback;
 using Windows.Storage;
 using System.Linq;
+using FantasyRadioPlaylistManager.Tools;
 
 namespace FantasyRadioPlaylistManager
 {
@@ -195,7 +196,17 @@ namespace FantasyRadioPlaylistManager
             CurrentStreamId = index;
             var URL = Constants.streamURLS[index];
             mediaPlayer.AutoPlay = false;
-            mediaPlayer.SetUriSource(new Uri(URL));
+            if (URL.Equals(Constants.streamURLS[0])) //Пока костыль
+            {
+                var s = new ShoutcastStream();
+                var conenctTask = s.ConnectAsync(new Uri(URL));
+                conenctTask.Wait();
+                mediaPlayer.SetStreamSource(s);
+            }
+            else
+            {
+                mediaPlayer.SetUriSource(new Uri(URL));
+            }
         }
 
         /// <summary>

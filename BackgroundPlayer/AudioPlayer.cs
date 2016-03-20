@@ -76,6 +76,8 @@ namespace BackgroundPlayer
 
             //Add handlers for MediaPlayer
             BackgroundMediaPlayer.Current.CurrentStateChanged += Current_CurrentStateChanged;
+            BackgroundMediaPlayer.Current.BufferingStarted += Current_BufferingStarted;
+            BackgroundMediaPlayer.Current.BufferingEnded += Current_BufferingEnded;
 
             //Add handlers for playlist trackchanged
             Playlist.TrackChanged += playList_TrackChanged;
@@ -95,6 +97,24 @@ namespace BackgroundPlayer
 
             ApplicationSettingsHelper.SaveSettingsValue(Constants.BackgroundTaskState, Constants.BackgroundTaskRunning);
             deferral = taskInstance.GetDeferral();
+        }
+
+        private void Current_BufferingStarted(MediaPlayer sender, object args)
+        {
+            //Message channel that can be used to send messages to foreground
+            ValueSet message = new ValueSet();
+            string bufStartedMessage = "?" + (byte)playlistManager.Current.CurrentSource;  //new TrackChangedMessage { trackName = sender.CurrentTrackName, source = (byte)playlistManager.Current.CurrentSource};
+            message.Add(Constants.BufferingStarted, bufStartedMessage);
+            BackgroundMediaPlayer.SendMessageToForeground(message);
+        }
+
+        private void Current_BufferingEnded(MediaPlayer sender, object args)
+        {
+            //Message channel that can be used to send messages to foreground
+            ValueSet message = new ValueSet();
+            string bufEndedMessage = "?" + (byte)playlistManager.Current.CurrentSource;  //new TrackChangedMessage { trackName = sender.CurrentTrackName, source = (byte)playlistManager.Current.CurrentSource};
+            message.Add(Constants.BufferingEnded, bufEndedMessage);
+            BackgroundMediaPlayer.SendMessageToForeground(message);
         }
 
         /// <summary>

@@ -16,6 +16,9 @@
         public const string BackgroundTaskState = "backgroundtaskstate";
         public const string SkipPrevious = "skipprevious";
         public const string Trackchanged = "songchanged";
+        public const string BufferingStarted = "bufstart";
+        public const string BufferingEnded = "bufend";
+
         public const string Statechanged = "statechanged";
         public const string ForegroundAppActive = "Active";
         public const string ForegroundAppSuspended = "Suspended";

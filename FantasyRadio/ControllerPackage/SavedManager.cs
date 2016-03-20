@@ -1,6 +1,7 @@
 ﻿using FantasyRadio.DataModel;
 using FantasyRadio.Utils;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Windows.Storage;
@@ -42,10 +43,28 @@ namespace FantasyRadio
 
         public void ReloadItems()
         {
+            //TODO сохранять у старых итемов свойство Playing
+            string nowPlaying = "";
+            foreach (var entity in Items)
+            {
+                if (entity.Playing)
+                {
+                    nowPlaying = entity.Title;
+                    break;
+                }
+            }
             var storageFolder = ApplicationData.Current.LocalFolder; //мб RoamingFolder?   
             var createStorageFolderTask = storageFolder.CreateFolderAsync(Constants.SAVED_FOLDER_NAME, CreationCollisionOption.OpenIfExists);
             createStorageFolderTask.AsTask().Wait();
             Items = ListFilesInFolder(createStorageFolderTask.GetResults(), 1);
+            foreach(var item in Items)
+            {
+                if(item.Title.Equals(nowPlaying))
+                {
+                    item.Playing = true;
+                    break;
+                }
+            }
         }
 
         // Continue recursive enumeration of files and folders.
@@ -62,7 +81,6 @@ namespace FantasyRadio
                 var savedEntity = new SavedAudioEntity(currentFile.Name, currentFile.Path, currentFile.Path, currentFile.Name);
                 result.Add(savedEntity);
             }
-
             return result;
         }
 
@@ -99,7 +117,7 @@ namespace FantasyRadio
                                 entity.Playing = true;
                                 break;
                             }
-                        }                       
+                        }
                         break;
                 }
                 Notify("Items");

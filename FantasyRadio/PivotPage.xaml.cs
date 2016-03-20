@@ -1,12 +1,8 @@
-﻿using BackgroundPlayer;
-using FantasyRadio.Common;
+﻿using FantasyRadio.Common;
 using FantasyRadio.DataModel;
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Windows.ApplicationModel.Resources;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -115,7 +111,6 @@ namespace FantasyRadio
             // TODO: Сохраните здесь уникальное состояние страницы.
         }
 
-        #region Регистрация NavigationHelper
 
         /// <summary>
         /// Методы, предоставленные в этом разделе, используются исключительно для того, чтобы
@@ -140,7 +135,6 @@ namespace FantasyRadio
             this.navigationHelper.OnNavigatedFrom(e);
         }
 
-        #endregion
 
         private void Play_Pause_Button_click(object sender, RoutedEventArgs e)
         {
@@ -251,7 +245,20 @@ namespace FantasyRadio
             {
                 //TODO сделать, чтобы одновременно скачивались только разнве файлы
                 Controller.getInstance().CurrentArchiveManager.RunningDownloads.Add(url);
+                ArchiveEntity tempItem = null;
+                foreach (var item in Controller.getInstance().CurrentArchiveManager.Items)
+                {
+                    if (item.URL.Equals(url))
+                    {
+                        tempItem = item;
+                        break;
+                    }
+                }
+                if (tempItem != null)
+                    tempItem.DownloadInProgress = true;
                 bool b = await Controller.getInstance().CurrentArchiveManager.saveMp3Async(url);
+                if (tempItem != null)
+                    tempItem.DownloadInProgress = false;
                 if (b)
                 {
                     await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
@@ -287,14 +294,36 @@ namespace FantasyRadio
         private void PlaySavedTap(Object sender, TappedRoutedEventArgs e)
         {
             Debug.WriteLine("Play button pressed from App");
+            var same = false;
+            if (Controller.getInstance().CurrentSavedManager.CurrentMP3Entity != null && Controller.getInstance().CurrentSavedManager.CurrentMP3Entity.Equals((sender as Control).Tag.ToString()))
+                same = true;
             Controller.getInstance().CurrentSavedManager.CurrentMP3Entity = (sender as Control).Tag.ToString();
             if (IsMyBackgroundTaskRunning)
             {
                 if (MediaPlayerState.Playing == BackgroundMediaPlayer.Current.CurrentState)
                 {
                     BackgroundMediaPlayer.Current.Pause();
+                    if (!same)
+                    {
+                        var message = new ValueSet();
+                        message.Add(Constants.PlayFileByName, (sender as Control).Tag);
+                        BackgroundMediaPlayer.SendMessageToBackground(message);
+                    }
                 }
-                else if (MediaPlayerState.Paused == BackgroundMediaPlayer.Current.CurrentState || MediaPlayerState.Opening == BackgroundMediaPlayer.Current.CurrentState)
+                else if (MediaPlayerState.Paused == BackgroundMediaPlayer.Current.CurrentState)
+                {
+                    if (!same)
+                    {
+                        var message = new ValueSet();
+                        message.Add(Constants.PlayFileByName, (sender as Control).Tag);
+                        BackgroundMediaPlayer.SendMessageToBackground(message);
+                    }
+                    else
+                    {
+                        BackgroundMediaPlayer.Current.Play();
+                    }
+                }
+                else if (MediaPlayerState.Opening == BackgroundMediaPlayer.Current.CurrentState)
                 {
                     var message = new ValueSet();
                     message.Add(Constants.PlayFileByName, (sender as Control).Tag);
@@ -459,6 +488,37 @@ namespace FantasyRadio
                             }
                         }
                         break;
+                    case Constants.BufferingStarted:
+                        {
+                            Debug.WriteLine("Buffering started");
+                            if (byte.Parse(messages[1]) == (byte)PlayerSource.Stream)
+                            {
+                                await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                            {
+                                //TODO ставим файлу картинку паузы
+                                Controller.getInstance().CurrentRadioManager.CurrentTitle = "Buffering";
+                            }
+                                        );
+                            }
+                            break;
+                        }
+                    case Constants.BufferingEnded:
+                        {
+                            Debug.WriteLine("Buffering ended");
+                            if (byte.Parse(messages[1]) == (byte)PlayerSource.Stream)
+                            {
+                                await this.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                            {
+                                //TODO ставим файлу картинку паузы
+                                if (Controller.getInstance().CurrentRadioManager.CurrentTitle.Equals("Buffering"))
+                                {
+                                    Controller.getInstance().CurrentRadioManager.CurrentTitle = "";
+                                }
+                            }
+                                        );
+                            }
+                            break;
+                        }
                 }
             }
         }

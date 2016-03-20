@@ -14,7 +14,7 @@ namespace FantasyRadio
     class ArchiveManager : INotifyPropertyChanged
     {
         private ArchiveParser parser = new ArchiveParser();
-        private ObservableCollection<ArchiveEntity> archiveItems = new ObservableCollection<ArchiveEntity>();
+        private ObservableCollectionEx<ArchiveEntity> archiveItems = new ObservableCollectionEx<ArchiveEntity>();
         public string Login { get; set; }
         public string Password { get; set; }
         private bool isParsingActive;

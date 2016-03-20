@@ -146,11 +146,12 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock VerticalAlignment="Center" TextAlignment="Left" Grid.Column="0" Padding="3" Text="{Binding Time}"/>
                                     <TextBlock VerticalAlignment="Center" TextAlignment="Left" TextWrapping="Wrap" Grid.Column="1" Padding="3" Text="{Binding Name}"/>
-                                    <Button VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" Tapped="DownloadTap" Tag="{Binding URL}" BorderBrush="Transparent">
+                                    <Button Visibility="{Binding DownloadVisibility}"  VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" Tapped="DownloadTap" Tag="{Binding URL}" BorderBrush="Transparent">
                                         <Button.Background>
                                             <ImageBrush ImageSource="Assets/download.png" Stretch="Uniform"/>
                                         </Button.Background>
                                     </Button>
+                                    <ProgressRing Visibility="{Binding ProgressVisibility}" IsActive="{Binding DownloadInProgress}" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" BorderBrush="Transparent"/>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
