@@ -48,20 +48,17 @@
                                 <ImageBrush ImageSource="{Binding PlayPauseImage}" Stretch="Uniform"/>
                             </Button.Background>
                         </Button>
-                        <TextBlock Grid.Column="1"/>
-                        <TextBlock Grid.Column="3"/>
-                        <TextBlock TextWrapping="Wrap" Grid.Column="4" x:Name="RadioTitle" x:Uid="RadioTitle" Text="{Binding CurrentTitle}"/>
+                        <TextBlock Style="{StaticResource BaseTextBlockStyle}" Grid.Column="1"/>
+                        <TextBlock Style="{StaticResource BaseTextBlockStyle}" Grid.Column="3"/>
+                        <TextBlock Style="{StaticResource BaseTextBlockStyle}" TextWrapping="Wrap" Grid.Column="4" x:Name="RadioTitle" x:Uid="RadioTitle" Text="{Binding CurrentTitle}"/>
                     </Grid>
                     <Line Height="1" Margin="5" Stroke="White"/>
                     <StackPanel Orientation="Vertical">
                         <StackPanel Name="BitratePanel1" Orientation="Horizontal" Background="{Binding Bitrate1Color}" Tapped="bitrateClick" Tag="0">
-                            <TextBlock x:Uid="BitrateText1" Text="Stream 1" Padding="5" />
+                            <TextBlock  Style="{StaticResource BaseTextBlockStyle}" x:Uid="BitrateText1" Text="Stream 1" Padding="5" />
                         </StackPanel>
                         <StackPanel Name="BitratePanel2" Orientation="Horizontal" Background="{Binding Bitrate2Color}" Tapped="bitrateClick" Tag="1">
-                            <TextBlock x:Uid="BitrateText2" Text="Stream 2" Padding="5"/>
-                        </StackPanel>
-                        <StackPanel Name="BitratePanel3" Orientation="Horizontal" Background="{Binding Bitrate3Color}" Tapped="bitrateClick" Tag="2">
-                            <TextBlock x:Uid="BitrateText3" Text="Stream 3" Padding="5"/>
+                            <TextBlock  Style="{StaticResource BaseTextBlockStyle}" x:Uid="BitrateText2" Text="Stream 2" Padding="5"/>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -79,7 +76,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Button Grid.Row="0" Padding="0, 10, 0, 10"  VerticalAlignment="Top" x:Uid="RefreshScheduleButton" Margin="10" HorizontalAlignment="Stretch" BorderThickness="1" BorderBrush="#FF124E67" Tapped="ScheduleRefreshButtonclick">
-                        <TextBlock x:Uid="RefreshScheduleTextBlock"/>
+                        <TextBlock  Style="{StaticResource BaseTextBlockStyle}" x:Uid="RefreshScheduleTextBlock"/>
                     </Button>
                     <ProgressRing Grid.Row="1" x:Name="ScheduleProgressRing" IsActive="{Binding IsParsingActive}" Height="90" Width="90" />
                     <ListView
@@ -93,7 +90,7 @@
                                 <GroupStyle.HeaderTemplate>
                                     <DataTemplate>
                                         <StackPanel Width="{Binding ElementName=ScheduleListView, Path=ActualWidth}"  Background="#FF0C648C">
-                                            <TextBlock Margin="5" FontWeight="Bold" Text="{Binding Key}"/>
+                                            <TextBlock  Style="{StaticResource BaseTextBlockStyle}" Margin="5" FontWeight="Bold" Text="{Binding Key}"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </GroupStyle.HeaderTemplate>
@@ -101,13 +98,13 @@
                         </ListView.GroupStyle>
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Tag="{Binding}"  Tapped="ScheduleItemTapped">
+                                <Grid Tag="{Binding}"  Tapped="ScheduleItemTapped" >
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="1*"/>
                                         <ColumnDefinition Width="2*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock TextAlignment="Center" Grid.Column="0" Padding="3" Text="{Binding Time}"/>
-                                    <TextBlock TextWrapping="Wrap" Grid.Column="1" Padding="3" Text="{Binding Title}"/>
+                                    <TextBlock Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Center" Style="{StaticResource BaseTextBlockStyle}" Padding="3,3,6,3" Text="{Binding Time}"/>
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left" Style="{StaticResource BaseTextBlockStyle}" Padding="6,3,0,3" Text="{Binding Title}"/>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -126,7 +123,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Button Grid.Row="0"  Padding="0, 10, 0, 10"  VerticalAlignment="Top" x:Uid="RefreshScheduleButton" Margin="10" HorizontalAlignment="Stretch" BorderThickness="1" BorderBrush="#FF124E67" Tapped="ArchiveRefreshButtonclick">
-                        <TextBlock x:Uid="RefreshArchiveTextBlock"/>
+                        <TextBlock  Style="{StaticResource BaseTextBlockStyle}" x:Uid="RefreshArchiveTextBlock"/>
                     </Button>
                     <TextBlock Grid.Row="1"  VerticalAlignment="Top" x:Uid="RefreshScheduleButton" Margin="10, 0, 10, 10" HorizontalAlignment="Stretch"/>
                     <ProgressRing Grid.Row="2" x:Name="ArchieveProgressRing" IsActive="{Binding IsParsingActive}" Height="90" Width="90" />
@@ -144,14 +141,14 @@
                                         <ColumnDefinition Width="31*"/>
                                         <ColumnDefinition Width="13*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock VerticalAlignment="Center" TextAlignment="Left" Grid.Column="0" Padding="3" Text="{Binding Time}"/>
-                                    <TextBlock VerticalAlignment="Center" TextAlignment="Left" TextWrapping="Wrap" Grid.Column="1" Padding="3" Text="{Binding Name}"/>
-                                    <Button Visibility="{Binding DownloadVisibility}"  VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" Tapped="DownloadTap" Tag="{Binding URL}" BorderBrush="Transparent">
+                                    <TextBlock VerticalAlignment="Top" HorizontalAlignment="Center" Style="{StaticResource BaseTextBlockStyle}" Grid.Column="0" Padding="3" Text="{Binding Time}"/>
+                                    <TextBlock VerticalAlignment="Top" HorizontalAlignment="Stretch" Style="{StaticResource BaseTextBlockStyle}" TextWrapping="Wrap" Grid.Column="1" Padding="3" Text="{Binding Name}"/>
+                                    <Button Visibility="{Binding DownloadVisibility}" VerticalAlignment="Top" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" Tapped="DownloadTap" Tag="{Binding URL}" BorderBrush="Transparent">
                                         <Button.Background>
-                                            <ImageBrush ImageSource="Assets/download.png" Stretch="Uniform"/>
+                                            <ImageBrush Stretch="Uniform" ImageSource="Assets/download.png"/>
                                         </Button.Background>
                                     </Button>
-                                    <ProgressRing Visibility="{Binding ProgressVisibility}" IsActive="{Binding DownloadInProgress}" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" BorderBrush="Transparent"/>
+                                    <ProgressRing Visibility="{Binding ProgressVisibility}" IsActive="{Binding DownloadInProgress}" VerticalAlignment="Top" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" BorderBrush="Transparent"/>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -178,7 +175,7 @@
                                         <ColumnDefinition Width="27*"/>
                                         <ColumnDefinition Width="3*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock VerticalAlignment="Center" TextAlignment="Left" Grid.Column="0" Padding="3" Text="{Binding Title}"/>
+                                    <TextBlock  Style="{StaticResource BaseTextBlockStyle}" VerticalAlignment="Center" TextAlignment="Left" Grid.Column="0" Padding="3" Text="{Binding Title}"/>
                                     <Button VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" Tapped="DeleteTap" Tag="{Binding Title}" BorderBrush="Transparent">
                                         <Button.Background>
                                             <ImageBrush ImageSource="Assets/delete.png" Stretch="Uniform"/>
@@ -196,7 +193,7 @@
                                         </Button.Background>
                                     </Button>
                                     <Slider Tag="{Binding Title}" Name="SavedTimelineSlider" Grid.Column="1">
-                                        
+
                                     </Slider>
                                 </Grid>
                             </StackPanel>

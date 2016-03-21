@@ -46,9 +46,9 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Name="ScheduleItemTitle" Margin="4,4,4,16" FontWeight="Bold"/>
+                <TextBlock  Style="{StaticResource BaseTextBlockStyle}" Grid.Row="0" Name="ScheduleItemTitle" Margin="4,4,4,16" FontWeight="Bold"/>
                 <Image Stretch="None" Grid.Row="1" Name="ScheduleItemImage" Margin="4,16,4,4"/>
-                <TextBlock TextWrapping="Wrap" Grid.Row="2" Name="ScheduleItemDescription" Margin="4,4,4,16"/>
+                <TextBlock  Style="{StaticResource BaseTextBlockStyle}" TextWrapping="Wrap" Grid.Row="2" Name="ScheduleItemDescription" Margin="4,4,4,16"/>
             </Grid>
         </ScrollViewer>
     </Grid>

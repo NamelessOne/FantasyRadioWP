@@ -183,7 +183,24 @@ namespace FantasyRadioPlaylistManager
             CurrentSource = PlayerSource.Stream;
             CurrentStreamId = Constants.streamURLS.ToList().FindIndex(x => x.Equals(streamUrl));
             mediaPlayer.AutoPlay = false;
-            mediaPlayer.SetUriSource(new Uri(streamUrl));
+            if (streamUrl.Equals(Constants.streamURLS[0])) //Пока костыль
+            {
+                var s = new ShoutcastStream();
+                var conenctTask = s.ConnectAsync(new Uri(streamUrl));
+                try
+                {
+                    conenctTask.Wait();
+                }
+                catch (Exception e)
+                {
+                    mediaPlayer.Pause();
+                }
+                mediaPlayer.SetStreamSource(s);
+            }
+            else
+            {
+                mediaPlayer.SetUriSource(new Uri(streamUrl));
+            }
         }
 
         public void StartStreamAt(int index)
@@ -200,7 +217,14 @@ namespace FantasyRadioPlaylistManager
             {
                 var s = new ShoutcastStream();
                 var conenctTask = s.ConnectAsync(new Uri(URL));
-                conenctTask.Wait();
+                try
+                {
+                    conenctTask.Wait();
+                }
+                catch (Exception e)
+                {
+                    mediaPlayer.Pause();
+                }
                 mediaPlayer.SetStreamSource(s);
             }
             else

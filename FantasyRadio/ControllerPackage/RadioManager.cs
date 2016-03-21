@@ -92,17 +92,6 @@ namespace FantasyRadio
         {
             get
             {
-                if (CurrentBitrate == Bitrates.MP364)
-                    return BITRATE_ELEMENT_COLOR_ACTIVE;
-                else
-                    return BITRATE_ELEMENT_COLOR;
-            }
-        }
-
-        public SolidColorBrush Bitrate3Color
-        {
-            get
-            {
                 if (CurrentBitrate == Bitrates.MP396)
                     return BITRATE_ELEMENT_COLOR_ACTIVE;
                 else
@@ -122,7 +111,6 @@ namespace FantasyRadio
                 currentBitrate = value;
                 Notify("Bitrate1Color");
                 Notify("Bitrate2Color");
-                Notify("Bitrate3Color");
             }
         }
 
@@ -132,12 +120,10 @@ namespace FantasyRadio
             {
                 case Bitrates.MP332:
                     return Constants.streamURLS[0];
-                case Bitrates.MP364:
-                    return Constants.streamURLS[1];
                 case Bitrates.MP396:
-                    return Constants.streamURLS[2];
-                default:
                     return Constants.streamURLS[1];
+                default:
+                    return Constants.streamURLS[0];
             }
         }
 

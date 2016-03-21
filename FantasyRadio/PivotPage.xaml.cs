@@ -48,7 +48,6 @@ namespace FantasyRadio
             PlayPauseButton.DataContext = Controller.getInstance().CurrentRadioManager;
             BitratePanel1.DataContext = Controller.getInstance().CurrentRadioManager;
             BitratePanel2.DataContext = Controller.getInstance().CurrentRadioManager;
-            BitratePanel3.DataContext = Controller.getInstance().CurrentRadioManager;
             ScheduleListView.DataContext = Controller.getInstance().CurrentScheduleManager;
             ScheduleCollection.Source = Controller.getInstance().CurrentScheduleManager.Items;
             ArchiveListView.DataContext = Controller.getInstance().CurrentArchiveManager;

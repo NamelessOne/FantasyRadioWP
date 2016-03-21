@@ -27,7 +27,6 @@
         public const string PlayStream = "playstream";
         public static readonly string[] streamURLS = {
             "http://fantasyradioru.no-ip.biz:8008", //Через shoutcast работает (лолчто)
-            "http://stream0.radiostyle.ru:8000/fantasy-radio",
             "http://fantasyradioru.no-ip.biz:8002/live", //Работает:/
         };
     }
