@@ -28,6 +28,23 @@ namespace FantasyRadio
             }
         }
 
+        public static object ReadSettingsValue(string key)
+        {
+            Debug.WriteLine(key);
+            if (!ApplicationData.Current.LocalSettings.Values.ContainsKey(key))
+            {
+                Debug.WriteLine("null returned");
+                return null;
+            }
+            else
+            {
+                var value = ApplicationData.Current.LocalSettings.Values[key];
+                Debug.WriteLine("value found " + value.ToString());
+                return value;
+            }
+        }
+
+
         /// <summary>
         /// Save a key value pair in settings. Create if it doesn't exist
         /// </summary>

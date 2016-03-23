@@ -109,8 +109,13 @@ namespace FantasyRadio.Utils
                     }
                 }
             }
+            catch (WrongLoginOrPasswordException ex)
+            {
+
+            }
             catch (Exception e)
             {
+                
             }
             return result;
         }

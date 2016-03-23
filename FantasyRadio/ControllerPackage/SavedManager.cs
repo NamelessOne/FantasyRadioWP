@@ -124,7 +124,7 @@ namespace FantasyRadio
         }
 
         public SavedManager()
-        {
+        {            
             SavedAudioEntity.PlayImage = new BitmapImage(new Uri("ms-appx:/Assets/play.png", UriKind.Absolute));
             SavedAudioEntity.PauseImage = new BitmapImage(new Uri("ms-appx:/Assets/pause.png", UriKind.Absolute));
         }

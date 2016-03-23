@@ -26,9 +26,6 @@ namespace FantasyRadio
 
     public sealed partial class PivotPage : Page
     {
-        private const string FirstGroupName = "FirstGroup";
-        private const string SecondGroupName = "SecondGroup";
-
         private readonly NavigationHelper navigationHelper;
         private readonly ObservableDictionary defaultViewModel = new ObservableDictionary();
         private readonly ResourceLoader resourceLoader = ResourceLoader.GetForCurrentView("Resources");
@@ -62,6 +59,39 @@ namespace FantasyRadio
             this.navigationHelper = new NavigationHelper(this);
             this.navigationHelper.LoadState += this.NavigationHelper_LoadState;
             this.navigationHelper.SaveState += this.NavigationHelper_SaveState;
+        }
+
+        private async void ShowErrorMessage(string message)
+        {
+            ContentDialog error = new ContentDialog()
+            {
+                Title = "Ошибка",
+                Content = message,
+                PrimaryButtonText = "OK"
+            };
+            await error.ShowAsync();
+        }
+
+        private async void ShowArchiveDialog()
+        {
+            var panel = new StackPanel();
+            panel.Children.Add(new TextBlock
+            {
+                Text = "Запись эфира за предыдущий день. Качество записи 32 кб/с. Периодически сервис может быть недоступен. Для использования архива необходимо зарегистрироваться. Если вы зарегистрированы, пожалуйста укажите логин и пароль в настройках.",
+                TextWrapping = TextWrapping.Wrap,
+            });
+            ContentDialog archieveDialog = new ContentDialog()
+            {
+                Title = "Архив",
+                //Content = "Запись эфира за предыдущий день. Качество записи 32 кб/с. Периодически сервис может быть недоступен. Для использования архива необходимо зарегистрироваться. Если вы зарегистрированы, пожалуйста укажите логин и пароль в настройках.",
+                Content = panel,
+                PrimaryButtonText = "Регистрация",
+                SecondaryButtonText = "Настройки",
+                PrimaryButtonCommand = new RelayCommand(() => Windows.System.Launcher.LaunchUriAsync(new Uri("http://fantasyradio.ru/index.php/registratsiya"))),
+                SecondaryButtonCommand = new RelayCommand(() => Frame.Navigate(typeof(SettingsPage))
+            ),
+            };
+            await archieveDialog.ShowAsync();
         }
 
         /// <summary>
@@ -126,7 +156,81 @@ namespace FantasyRadio
         /// событий, которые не могут отменить запрос навигации.</param>
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
+            App.Current.Suspending += ForegroundApp_Suspending;
+            App.Current.Resuming += ForegroundApp_Resuming;
+            ApplicationSettingsHelper.SaveSettingsValue(Constants.AppState, Constants.ForegroundAppActive);
             this.navigationHelper.OnNavigatedTo(e);
+        }
+
+        /// <summary>
+        /// Sends message to background informing app has resumed
+        /// Subscribe to MediaPlayer events
+        /// </summary>
+        void ForegroundApp_Resuming(object sender, object e)
+        {
+            ApplicationSettingsHelper.SaveSettingsValue(Constants.AppState, Constants.ForegroundAppActive);
+
+            // Verify if the task was running before
+            if (IsMyBackgroundTaskRunning)
+            {
+                //if yes, reconnect to media play handlers
+                AddMediaPlayerEventHandlers();
+
+                //send message to background task that app is resumed, so it can start sending notifications
+                ValueSet messageDictionary = new ValueSet();
+                messageDictionary.Add(Constants.AppResumed, DateTime.Now.ToString());
+                BackgroundMediaPlayer.SendMessageToBackground(messageDictionary);
+                //TODO узнавать, что сейчас играет (может кидать trackChanged из бэкграунда???)
+
+                /*if (BackgroundMediaPlayer.Current.CurrentState == MediaPlayerState.Playing)
+                {
+                    playButton.Content = "| |";     // Change to pause button
+                }
+                else
+                {
+                    playButton.Content = ">";     // Change to play button
+                }
+                txtCurrentTrack.Text = CurrentTrack;*/
+            }
+            else
+            {
+                //playButton.Content = ">";     // Change to play button
+                //txtCurrentTrack.Text = "";
+            }
+
+        }
+
+        /// <summary>
+        /// Read current track information from application settings
+        /// </summary>
+        private string CurrentTrack
+        {
+            get
+            {
+                object value = ApplicationSettingsHelper.ReadResetSettingsValue(Constants.CurrentTrack);
+                if (value != null)
+                {
+                    return (String)value;
+                }
+                else
+                    return String.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Send message to Background process that app is to be suspended
+        /// Stop clock and slider when suspending
+        /// Unsubscribe handlers for MediaPlayer events
+        /// </summary>
+        void ForegroundApp_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
+        {
+            var deferral = e.SuspendingOperation.GetDeferral();
+            ValueSet messageDictionary = new ValueSet();
+            messageDictionary.Add(Constants.AppSuspended, DateTime.Now.ToString());
+            BackgroundMediaPlayer.SendMessageToBackground(messageDictionary);
+            RemoveMediaPlayerEventHandlers();
+            ApplicationSettingsHelper.SaveSettingsValue(Constants.AppState, Constants.ForegroundAppSuspended);
+            deferral.Complete();
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -179,6 +283,7 @@ namespace FantasyRadio
                 }
                 else
                 {
+                    ApplicationSettingsHelper.SaveSettingsValue(Constants.BackgroundTaskState, Constants.BackgroundTaskRunning);
                     throw new Exception("Background Audio Task didn't start in expected time");
                 }
             }
@@ -219,21 +324,31 @@ namespace FantasyRadio
 
         private async void ArchiveRefreshButtonclick(object sender, TappedRoutedEventArgs e)
         {
-            if (!Controller.getInstance().CurrentArchiveManager.IsParsingActive)
+            if ((Controller.getInstance().CurrentArchiveManager.Password != null
+            && Controller.getInstance().CurrentArchiveManager.Password.Length > 0)
+            && (Controller.getInstance().CurrentArchiveManager.Login != null
+            && Controller.getInstance().CurrentArchiveManager.Login.Length > 0)) //NullReference
             {
-                //TODO потенциально непотокобезопасно
-                //TODO interlockedExchange
-                Controller.getInstance().CurrentArchiveManager.IsParsingActive = true;
-                Controller.getInstance().CurrentArchiveManager.Items.Clear();
-                var items = await Controller.getInstance().CurrentArchiveManager.ParseArchiveAsync();
-                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                if (!Controller.getInstance().CurrentArchiveManager.IsParsingActive)
                 {
-                    foreach (var item in items)
+                    //TODO потенциально непотокобезопасно
+                    //TODO interlockedExchange
+                    Controller.getInstance().CurrentArchiveManager.IsParsingActive = true;
+                    Controller.getInstance().CurrentArchiveManager.Items.Clear();
+                    var items = await Controller.getInstance().CurrentArchiveManager.ParseArchiveAsync();
+                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
-                        Controller.getInstance().CurrentArchiveManager.Items.Add(item);
-                    }
-                });
-                Controller.getInstance().CurrentArchiveManager.IsParsingActive = false;
+                        foreach (var item in items)
+                        {
+                            Controller.getInstance().CurrentArchiveManager.Items.Add(item);
+                        }
+                    });
+                    Controller.getInstance().CurrentArchiveManager.IsParsingActive = false;
+                }
+            }
+            else
+            {
+                ShowArchiveDialog();
             }
         }
 
@@ -354,11 +469,18 @@ namespace FantasyRadio
                 }
                 else
                 {
-                    throw new Exception("Background Audio Task didn't start in expected time");
+                    ApplicationSettingsHelper.SaveSettingsValue(Constants.BackgroundTaskState, Constants.BackgroundTaskRunning);
+                    throw new Exception("Background Audio Task didn't start in expected time"); //TODO хрень какая-то
                 }
             }
             );
             backgroundtaskinitializationresult.Completed = new AsyncActionCompletedHandler(BackgroundTaskInitializationCompleted);
+        }
+
+        private void RemoveMediaPlayerEventHandlers()
+        {
+            //BackgroundMediaPlayer.Current.CurrentStateChanged -= this.MediaPlayer_CurrentStateChanged;
+            BackgroundMediaPlayer.MessageReceivedFromBackground -= this.BackgroundMediaPlayer_MessageReceivedFromBackground;
         }
 
         /// <summary>
@@ -430,10 +552,24 @@ namespace FantasyRadio
                             if (byte.Parse(messages[1]) == (byte)PlayerSource.Stream)
                             {
                                 Controller.getInstance().CurrentRadioManager.CurrentTitle = messages[0];
+                                Debug.WriteLine(messages[0]);
                             }
                             else if (byte.Parse(messages[1]) == (byte)PlayerSource.File)
                             {
                                 //TODO
+                                Controller.getInstance().CurrentSavedManager.CurrentMP3Entity = messages[0];
+                                foreach (var item in Controller.getInstance().CurrentSavedManager.Items)
+                                {
+                                    if (item.Artist.Equals(messages[0]))
+                                    {
+                                        item.Playing = true;
+                                    }
+                                    else
+                                    {
+                                        if (item.Playing)
+                                            item.Playing = false;
+                                    }
+                                }
                             }
                         }
                         );
@@ -524,7 +660,7 @@ namespace FantasyRadio
 
         private void SettingsButtonClick(object sender, RoutedEventArgs e)
         {
-
+            Frame.Navigate(typeof(SettingsPage));
         }
 
         private void AboutButtonClick(object sender, RoutedEventArgs e)
@@ -549,6 +685,16 @@ namespace FantasyRadio
                     isMyBackgroundTaskRunning = ((String)value).Equals(Constants.BackgroundTaskRunning);
                     return isMyBackgroundTaskRunning;
                 }
+            }
+        }
+
+        private void SavedTimelineSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            if (BackgroundMediaPlayer.Current.CurrentState == MediaPlayerState.Playing &&Math.Abs(e.OldValue - e.NewValue) > 5)
+            {
+                var progressBar = sender as Slider;
+                TimeSpan ts = new TimeSpan(0, 0, (int)progressBar.Value);
+                BackgroundMediaPlayer.Current.Position = ts;
             }
         }
     }

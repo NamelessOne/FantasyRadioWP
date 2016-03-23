@@ -96,6 +96,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="SettingsPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AboutPage.xaml.cs">
@@ -120,6 +124,9 @@
     <Compile Include="ImageButton.xaml.cs">
       <DependentUpon>ImageButton.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SettingsPage.xaml.cs">
+      <DependentUpon>SettingsPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utils\ArchiveParser.cs" />
     <Compile Include="DataModel\SavedAudioEntity.cs" />
     <Compile Include="Utils\ObservableColelctionEx.cs" />
@@ -141,6 +148,28 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\ffmpeg\Build\WindowsPhone8.1\ARM\bin\avcodec-56.dll">
+      <Link>avcodec-56.dll</Link>
+    </Content>
+    <Content Include="..\ffmpeg\Build\WindowsPhone8.1\ARM\bin\avdevice-56.dll">
+      <Link>avdevice-56.dll</Link>
+    </Content>
+    <Content Include="..\ffmpeg\Build\WindowsPhone8.1\ARM\bin\avfilter-5.dll">
+      <Link>avfilter-5.dll</Link>
+    </Content>
+    <Content Include="..\ffmpeg\Build\WindowsPhone8.1\ARM\bin\avformat-56.dll">
+      <Link>avformat-56.dll</Link>
+    </Content>
+    <Content Include="..\ffmpeg\Build\WindowsPhone8.1\ARM\bin\avutil-54.dll">
+      <Link>avutil-54.dll</Link>
+    </Content>
+    <Content Include="..\ffmpeg\Build\WindowsPhone8.1\ARM\bin\swresample-1.dll">
+      <Link>swresample-1.dll</Link>
+    </Content>
+    <Content Include="..\ffmpeg\Build\WindowsPhone8.1\ARM\bin\swscale-3.dll">
+      <Link>swscale-3.dll</Link>
+    </Content>
+    <Content Include="Assets\BadgeLogo.scale-240.png" />
     <Content Include="Assets\delete.png" />
     <Content Include="Assets\delete_pressed.png" />
     <Content Include="Assets\download.png" />
@@ -158,6 +187,7 @@
     <Content Include="Assets\StoreLogo.scale-240.png" />
     <Content Include="Assets\WideLogo.scale-240.png" />
     <Content Include="Common\ReadMe.txt" />
+    <Content Include="README_FIRST.txt" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">

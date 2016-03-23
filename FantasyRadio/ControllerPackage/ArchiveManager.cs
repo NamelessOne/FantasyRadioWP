@@ -15,8 +15,26 @@ namespace FantasyRadio
     {
         private ArchiveParser parser = new ArchiveParser();
         private ObservableCollectionEx<ArchiveEntity> archiveItems = new ObservableCollectionEx<ArchiveEntity>();
-        public string Login { get; set; } = "NamelessOne";
-        public string Password { get; set; } = "pen3souin";
+        public string Login
+        {
+            get
+            {
+                return (string)ApplicationSettingsHelper.ReadSettingsValue(SettingsPage.LOGIN_KEY);
+            }
+            private set
+            {
+            }
+        }
+        public string Password
+        {
+            get
+            {
+                return (string)ApplicationSettingsHelper.ReadSettingsValue(SettingsPage.PASSWORD_KEY);
+            }
+            private set
+            {
+            }
+        }
         private bool isParsingActive;
         public bool IsParsingActive
         {
@@ -74,8 +92,9 @@ namespace FantasyRadio
         {
             try
             {
+                
                 var urlParts = url.Split('/');
-                string filename = urlParts[urlParts.Length - 1];
+                string filename = DateTime.Now.ToString("yyyy_MM_dd_") + urlParts[urlParts.Length - 1];
                 using (HttpClient http = new HttpClient())
                 {
                     http.DefaultRequestHeaders.Add("User-Agent",

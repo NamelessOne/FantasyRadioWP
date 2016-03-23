@@ -148,7 +148,7 @@
                                             <ImageBrush Stretch="Uniform" ImageSource="Assets/download.png"/>
                                         </Button.Background>
                                     </Button>
-                                    <ProgressRing Visibility="{Binding ProgressVisibility}" IsActive="{Binding DownloadInProgress}" VerticalAlignment="Top" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" BorderBrush="Transparent"/>
+                                    <ProgressRing  Visibility="{Binding ProgressVisibility}" IsActive="{Binding DownloadInProgress}" VerticalAlignment="Top" HorizontalAlignment="Center" MinWidth="0" Grid.Column="2" BorderBrush="Transparent"/>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -192,9 +192,7 @@
                                             <ImageBrush ImageSource="{Binding Image}" Stretch="Uniform"/>
                                         </Button.Background>
                                     </Button>
-                                    <Slider Tag="{Binding Title}" Name="SavedTimelineSlider" Grid.Column="1">
-
-                                    </Slider>
+                                    <Slider ValueChanged="SavedTimelineSlider_ValueChanged" IsEnabled="True" Value="{Binding PBValue, Mode=TwoWay}" Maximum="{Binding PBMaximum}" Tag="{Binding Title}" Name="SavedTimelineSlider" Grid.Column="1" Visibility="{Binding ProgressVisibility}"/>
                                 </Grid>
                             </StackPanel>
                         </DataTemplate>

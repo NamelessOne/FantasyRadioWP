@@ -6,7 +6,9 @@ using Windows.Foundation;
 using Windows.Media.Playback;
 using Windows.Storage;
 using System.Linq;
-using FantasyRadioPlaylistManager.Tools;
+using FFmpegInterop;
+using Windows.Media.Core;
+using Windows.Media;
 
 namespace FantasyRadioPlaylistManager
 {
@@ -46,8 +48,29 @@ namespace FantasyRadioPlaylistManager
     /// </summary>
     public sealed class FRPlaylist
     {
-        public PlayerSource CurrentSource { get; private set; }
-
+        private PlayerSource _currentSource;
+        public PlayerSource CurrentSource
+        {
+            get
+            {
+                return _currentSource;
+            }
+            private set
+            {
+                _currentSource = value;
+                //var systemmediatransportcontrol = SystemMediaTransportControls.GetForCurrentView();
+                //if (_currentSource==PlayerSource.Stream)
+                //{
+                //    systemmediatransportcontrol.IsNextEnabled = false;
+                //    systemmediatransportcontrol.IsPreviousEnabled = false;
+                //}
+                //else
+                //{
+                //    systemmediatransportcontrol.IsNextEnabled = true;
+                //    systemmediatransportcontrol.IsPreviousEnabled = true;
+                //}
+            }
+        }
         static string[] Tracks
         {
             get
@@ -76,6 +99,7 @@ namespace FantasyRadioPlaylistManager
         }
 
 
+        private string currentStreamName = Constants.streamURLS[0];
         /// <summary>
         /// Get the current track name
         /// </summary>
@@ -83,18 +107,23 @@ namespace FantasyRadioPlaylistManager
         {
             get
             {
-                if (CurrentTrackId == -1)
+                if (CurrentSource == PlayerSource.File)
                 {
-                    return String.Empty;
-                }
-                if (CurrentTrackId < Tracks.Length)
-                {
-                    return Tracks[CurrentTrackId];
+                    if (CurrentTrackId == -1)
+                    {
+                        return String.Empty;
+                    }
+                    if (CurrentTrackId < Tracks.Length)
+                    {
+                        return Tracks[CurrentTrackId];
+                    }
+                    else
+                    {
+                        throw new ArgumentOutOfRangeException("Track Id is higher than total number of tracks");
+                    }
                 }
                 else
-                {
-                    throw new ArgumentOutOfRangeException("Track Id is higher than total number of tracks");
-                }
+                    return currentStreamName;
             }
         }
         /// <summary>
@@ -134,7 +163,14 @@ namespace FantasyRadioPlaylistManager
         /// </summary>
         private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
         {
-            SkipToNext();
+            if (CurrentSource == PlayerSource.File)
+            {
+                SkipToNext();
+            }
+            else
+            {
+                mediaPlayer.Pause();
+            }
         }
 
         private void mediaPlayer_MediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
@@ -183,23 +219,16 @@ namespace FantasyRadioPlaylistManager
             CurrentSource = PlayerSource.Stream;
             CurrentStreamId = Constants.streamURLS.ToList().FindIndex(x => x.Equals(streamUrl));
             mediaPlayer.AutoPlay = false;
-            if (streamUrl.Equals(Constants.streamURLS[0])) //Пока костыль
+            try
             {
-                var s = new ShoutcastStream();
-                var conenctTask = s.ConnectAsync(new Uri(streamUrl));
-                try
-                {
-                    conenctTask.Wait();
-                }
-                catch (Exception e)
-                {
-                    mediaPlayer.Pause();
-                }
-                mediaPlayer.SetStreamSource(s);
+                currentStreamName = streamUrl;
+                var FFmpegMSS = FFmpegInteropMSS.CreateFFmpegInteropMSSFromUri(streamUrl, true, false);
+                MediaStreamSource mss = FFmpegMSS.GetMediaStreamSource();
+                mediaPlayer.SetMediaSource(mss);
             }
-            else
+            catch (Exception e)
             {
-                mediaPlayer.SetUriSource(new Uri(streamUrl));
+                mediaPlayer.Pause();
             }
         }
 
@@ -213,23 +242,16 @@ namespace FantasyRadioPlaylistManager
             CurrentStreamId = index;
             var URL = Constants.streamURLS[index];
             mediaPlayer.AutoPlay = false;
-            if (URL.Equals(Constants.streamURLS[0])) //Пока костыль
+            try
             {
-                var s = new ShoutcastStream();
-                var conenctTask = s.ConnectAsync(new Uri(URL));
-                try
-                {
-                    conenctTask.Wait();
-                }
-                catch (Exception e)
-                {
-                    mediaPlayer.Pause();
-                }
-                mediaPlayer.SetStreamSource(s);
+                currentStreamName = URL;
+                var FFmpegMSS = FFmpegInteropMSS.CreateFFmpegInteropMSSFromUri(URL, true, false);
+                MediaStreamSource mss = FFmpegMSS.GetMediaStreamSource();
+                mediaPlayer.SetMediaSource(mss);
             }
-            else
+            catch (Exception e)
             {
-                mediaPlayer.SetUriSource(new Uri(URL));
+                mediaPlayer.Pause();
             }
         }
 

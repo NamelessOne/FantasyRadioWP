@@ -80,7 +80,7 @@ namespace BackgroundPlayer
             BackgroundMediaPlayer.Current.BufferingEnded += Current_BufferingEnded;
 
             //Add handlers for playlist trackchanged
-            Playlist.TrackChanged += playList_TrackChanged;
+            Playlist.TrackChanged += playList_TrackChanged;            
 
             //Initialize message channel 
             BackgroundMediaPlayer.MessageReceivedFromForeground += BackgroundMediaPlayer_MessageReceivedFromForeground;
@@ -282,7 +282,6 @@ namespace BackgroundPlayer
         {
             UpdateUVCOnNewTrack();
             ApplicationSettingsHelper.SaveSettingsValue(Constants.CurrentTrack, sender.CurrentTrackName);
-
             if (foregroundAppState == ForegroundAppStatus.Active)
             {
                 //Message channel that can be used to send messages to foreground
@@ -299,7 +298,8 @@ namespace BackgroundPlayer
         private void SkipToPrevious()
         {
             systemmediatransportcontrol.PlaybackStatus = MediaPlaybackStatus.Changing;
-            Playlist.SkipToPrevious();
+            if (Playlist.CurrentSource == PlayerSource.File)
+                Playlist.SkipToPrevious();
         }
 
         /// <summary>
@@ -308,14 +308,15 @@ namespace BackgroundPlayer
         private void SkipToNext()
         {
             systemmediatransportcontrol.PlaybackStatus = MediaPlaybackStatus.Changing;
-            Playlist.SkipToNext();
+            if (Playlist.CurrentSource == PlayerSource.File)
+                Playlist.SkipToNext();
         }
 
         void Current_CurrentStateChanged(MediaPlayer sender, object args)
         {
             if (sender.CurrentState == MediaPlayerState.Playing)
             {
-                systemmediatransportcontrol.PlaybackStatus = MediaPlaybackStatus.Playing;           
+                systemmediatransportcontrol.PlaybackStatus = MediaPlaybackStatus.Playing;
                 //Message channel that can be used to send messages to foreground
                 ValueSet message = new ValueSet();
                 string stateChangedMessage = (byte)sender.CurrentState + "?" + (byte)playlistManager.Current.CurrentSource;
@@ -353,6 +354,15 @@ namespace BackgroundPlayer
                     case Constants.AppResumed:
                         Debug.WriteLine("App resuming"); // App is resumed, now subscribe to message channel
                         foregroundAppState = ForegroundAppStatus.Active;
+                        //TODO отправлять trackChanged
+                        if (BackgroundMediaPlayer.Current.CurrentState == MediaPlayerState.Playing)
+                        {
+                            //Message channel that can be used to send messages to foreground
+                            ValueSet message = new ValueSet();
+                            string trackChangedMessage = playlistManager.Current.CurrentTrackName + "?" + (byte)playlistManager.Current.CurrentSource;  //new TrackChangedMessage { trackName = sender.CurrentTrackName, source = (byte)playlistManager.Current.CurrentSource};
+                            message.Add(Constants.Trackchanged, trackChangedMessage);
+                            BackgroundMediaPlayer.SendMessageToForeground(message);
+                        }
                         break;
                     case Constants.StartPlayback: //Foreground App process has signalled that it is ready for playback
                         Debug.WriteLine("Starting Playback");

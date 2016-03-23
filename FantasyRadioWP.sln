@@ -9,7 +9,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundPlayer", "Backgro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FantasyRadioPlaylistManager", "FantasyRadioPlaylistManager\FantasyRadioPlaylistManager.csproj", "{F8100737-C176-408E-B8AF-80AC05E879F1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFmpegInterop.WindowsPhone", "..\..\Repos\FFmpegInterop\FFmpegInterop\Win8.1\FFmpegInterop.WindowsPhone\FFmpegInterop.WindowsPhone.vcxproj", "{EBC5CA98-87F1-4A01-A48D-69659C103E72}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\..\Repos\FFmpegInterop\FFmpegInterop\Win8.1\FFmpegInterop.Shared\FFmpegInterop.Shared.vcxitems*{ebc5ca98-87f1-4a01-a48d-69659c103e72}*SharedItemsImports = 4
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|ARM = Debug|ARM
@@ -61,6 +66,16 @@ Global
 		{F8100737-C176-408E-B8AF-80AC05E879F1}.Release|ARM.Build.0 = Release|ARM
 		{F8100737-C176-408E-B8AF-80AC05E879F1}.Release|x86.ActiveCfg = Release|x86
 		{F8100737-C176-408E-B8AF-80AC05E879F1}.Release|x86.Build.0 = Release|x86
+		{EBC5CA98-87F1-4A01-A48D-69659C103E72}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{EBC5CA98-87F1-4A01-A48D-69659C103E72}.Debug|ARM.ActiveCfg = Debug|ARM
+		{EBC5CA98-87F1-4A01-A48D-69659C103E72}.Debug|ARM.Build.0 = Debug|ARM
+		{EBC5CA98-87F1-4A01-A48D-69659C103E72}.Debug|x86.ActiveCfg = Debug|Win32
+		{EBC5CA98-87F1-4A01-A48D-69659C103E72}.Debug|x86.Build.0 = Debug|Win32
+		{EBC5CA98-87F1-4A01-A48D-69659C103E72}.Release|Any CPU.ActiveCfg = Release|Win32
+		{EBC5CA98-87F1-4A01-A48D-69659C103E72}.Release|ARM.ActiveCfg = Release|ARM
+		{EBC5CA98-87F1-4A01-A48D-69659C103E72}.Release|ARM.Build.0 = Release|ARM
+		{EBC5CA98-87F1-4A01-A48D-69659C103E72}.Release|x86.ActiveCfg = Release|Win32
+		{EBC5CA98-87F1-4A01-A48D-69659C103E72}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
